@@ -1,8 +1,29 @@
+api:
+  prefix: /v1
+cors:
+  origin: http://localhost:8080
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 spring:
   application:
     name: dled-backend
+  # DB Connection
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${DBNAME}
+    username: ${DBUSERNAME:postgres}
+    password: ${DBPASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
 server:
   port: 8081
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+
