@@ -15,6 +15,7 @@ import java.util.Set;
 public interface ICategoryMapper {
     @Mapping(target = "children", expression = "java(mapChildren(category.getChildren()))")
     CategoryForFilterDTO fromOutSimpleList(Category category);
+    @Mapping(target = "parentId", expression = "java(category.getParent() != null ? category.getParent().getId() : null)")
     CategoryDTO fromOut(Category category);
     @Mapping(target = "children", expression = "java(mapChildren(category.getChildren()))")
     CategoryTreeDTO  fromOutList(Category category);

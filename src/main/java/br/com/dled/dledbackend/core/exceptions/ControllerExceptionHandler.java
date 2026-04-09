@@ -1,6 +1,7 @@
 package br.com.dled.dledbackend.core.exceptions;
 
 import br.com.dled.dledbackend.modules.categories.application.exception.CategoryNotFoundException;
+import br.com.dled.dledbackend.modules.products.application.exception.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +30,17 @@ public class ControllerExceptionHandler {
         return ResponseEntity.status(status).body(standardError);
     }
     @ExceptionHandler(CategoryNotFoundException.class)
-    public ResponseEntity<StandardError> categoryNotFound(HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
-        var error = CATEGORY_NOT_FOUND.params(request.getMethod()).getMassage();
+    public ResponseEntity<StandardError> categoryNotFound(CategoryNotFoundException e, HttpServletRequest request) {
+        var error = CATEGORY_NOT_FOUND.getMassage();
         HttpStatus status = HttpStatus.NOT_FOUND;
         var standardError = new StandardError( Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(standardError);
+    }
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<StandardError> productNotFound(ProductNotFoundException e, HttpServletRequest request) {
+        var error = PRODUCT_NOT_FOUND.getMassage();
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        var standardError = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
         return ResponseEntity.status(status).body(standardError);
     }
 }
