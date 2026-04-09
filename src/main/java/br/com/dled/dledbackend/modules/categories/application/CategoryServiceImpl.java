@@ -1,14 +1,13 @@
 package br.com.dled.dledbackend.modules.categories.application;
 
 import br.com.dled.dledbackend.modules.categories.application.dto.CategoryDTO;
-import br.com.dled.dledbackend.modules.categories.application.dto.CategorySimpleDTO;
+import br.com.dled.dledbackend.modules.categories.application.dto.CategoryForFilterDTO;
 import br.com.dled.dledbackend.modules.categories.application.dto.CategoryTreeDTO;
 import br.com.dled.dledbackend.modules.categories.application.exception.CategoryNotFoundException;
 import br.com.dled.dledbackend.modules.categories.application.mapper.ICategoryMapper;
 import br.com.dled.dledbackend.modules.categories.domain.Category;
 import br.com.dled.dledbackend.modules.categories.infrastructure.CategoryRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -40,7 +39,7 @@ public class CategoryServiceImpl implements ICategoryService{
     }
 
     @Override
-    public List<CategorySimpleDTO> getListRootCategory() {
+    public List<CategoryForFilterDTO> getListRootCategory() {
         return repository.findRootCategories().stream()
                 .filter(Category::isActive)
                 .sorted(Comparator.comparing(Category::getName))

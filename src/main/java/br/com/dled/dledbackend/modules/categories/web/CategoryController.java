@@ -3,7 +3,7 @@ package br.com.dled.dledbackend.modules.categories.web;
 import br.com.dled.dledbackend.core.exceptions.StandardError;
 import br.com.dled.dledbackend.modules.categories.application.ICategoryService;
 import br.com.dled.dledbackend.modules.categories.application.dto.CategoryDTO;
-import br.com.dled.dledbackend.modules.categories.application.dto.CategorySimpleDTO;
+import br.com.dled.dledbackend.modules.categories.application.dto.CategoryForFilterDTO;
 import br.com.dled.dledbackend.modules.categories.application.dto.CategoryTreeDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,7 +55,7 @@ public class CategoryController {
             description = "Categories retrieved successfully",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = CategorySimpleDTO.class)
+                    schema = @Schema(implementation = CategoryForFilterDTO.class)
             )
     )
     @ApiResponse(
@@ -67,7 +66,7 @@ public class CategoryController {
                     schema = @Schema(implementation = StandardError.class)
             )
     )
-    public ResponseEntity<List<CategorySimpleDTO>> getAllRootCategory(){
+    public ResponseEntity<List<CategoryForFilterDTO>> getAllRootCategory(){
         return ResponseEntity.ok(service.getListRootCategory());
     }
     @GetMapping("/{categoryID}")
