@@ -16,6 +16,7 @@ public class BaseMessageError {
     private String [] params;
     public static final BaseMessageError GENERIC_EXCEPTION = new BaseMessageError("generic");
     public static final BaseMessageError GENERIC_METHOD_NOT_ALLOW = new BaseMessageError("generic.methodNotAllow");
+    public static final BaseMessageError INVALID_API_KEY = new BaseMessageError("security.apiKey.invalid");
     public static final BaseMessageError CATEGORY_NOT_FOUND = new BaseMessageError("category.notFound");
     public static final BaseMessageError PRODUCT_NOT_FOUND = new BaseMessageError("product.notFound");
     public  BaseMessageError params(final String ... params) {

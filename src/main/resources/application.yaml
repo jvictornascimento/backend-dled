@@ -1,5 +1,9 @@
 api:
   prefix: /v1
+security:
+  api-key:
+    header-name: X-API-Key
+    value: ${API_KEY:dled-local-api-key}
 cors:
   origin: http://localhost:8080
 management:
@@ -25,5 +29,4 @@ server:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-
 
