@@ -1,6 +1,8 @@
 package br.com.dled.dledbackend.core.exceptions;
 
 import br.com.dled.dledbackend.modules.categories.application.exception.CategoryNotFoundException;
+import br.com.dled.dledbackend.modules.products.application.exception.ProductGalleryLimitException;
+import br.com.dled.dledbackend.modules.products.application.exception.ProductImageBadRequestException;
 import br.com.dled.dledbackend.modules.products.application.exception.ProductNotFoundException;
 import br.com.dled.dledbackend.infrastructure.security.InvalidApiKeyException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,6 +51,12 @@ public class ControllerExceptionHandler {
         var error = INVALID_API_KEY.getMassage();
         HttpStatus status = HttpStatus.UNAUTHORIZED;
         var standardError = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(standardError);
+    }
+    @ExceptionHandler({ProductGalleryLimitException.class, ProductImageBadRequestException.class})
+    public ResponseEntity<StandardError> badRequest(RuntimeException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        var standardError = new StandardError(Instant.now(), status.value(), e.getMessage(), e.getMessage(), request.getRequestURI());
         return ResponseEntity.status(status).body(standardError);
     }
 }

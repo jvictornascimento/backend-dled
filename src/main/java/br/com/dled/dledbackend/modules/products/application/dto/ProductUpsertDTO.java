@@ -56,20 +56,8 @@ public record ProductUpsertDTO(
         @Schema(description = "Voltage in volts", example = "24")
         int volt,
 
-        @Schema(
-                description = "Public image URL consumed by the frontend to render the product detail",
-                example = "https://cdn.exemplo.com/products/driver-60w.png"
-        )
-        String imgUrl,
-
         @Schema(description = "Product price", example = "149.90")
         Double price,
-
-        @Schema(
-                description = "Public icon URL consumed by the frontend to render product cards",
-                example = "https://cdn.exemplo.com/products/driver-60w-icon.png"
-        )
-        String iconUrl,
 
         @Schema(description = "Color temperature", example = "3000K")
         String temperaturaDeCor,

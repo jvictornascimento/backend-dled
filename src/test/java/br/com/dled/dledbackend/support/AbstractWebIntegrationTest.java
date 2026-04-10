@@ -2,13 +2,18 @@ package br.com.dled.dledbackend.support;
 
 import br.com.dled.dledbackend.modules.categories.domain.Category;
 import br.com.dled.dledbackend.modules.categories.infrastructure.CategoryRepository;
+import br.com.dled.dledbackend.modules.products.application.storage.ProductImageStorageService;
 import br.com.dled.dledbackend.modules.products.domain.Product;
 import br.com.dled.dledbackend.modules.products.domain.ProductStatus;
 import br.com.dled.dledbackend.modules.products.infrastructure.ProductRespository;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +26,7 @@ import java.util.Collections;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@Import(AbstractWebIntegrationTest.TestProductImageStorageConfig.class)
 public abstract class AbstractWebIntegrationTest {
 
     protected static final String API_KEY_HEADER = "X-API-Key";
@@ -40,6 +46,7 @@ public abstract class AbstractWebIntegrationTest {
 
     @BeforeEach
     void resetDatabase() {
+        jdbcTemplate.execute("DELETE FROM product_gallery_image");
         jdbcTemplate.execute("DELETE FROM product_category");
         jdbcTemplate.execute("DELETE FROM product");
         jdbcTemplate.execute("ALTER TABLE product ALTER COLUMN id RESTART WITH 1");
@@ -75,9 +82,11 @@ public abstract class AbstractWebIntegrationTest {
         product.setWatts(24);
         product.setGtin(7891234567890L);
         product.setVolt(12);
-        product.setImgUrl("product.png");
+        product.setImgUrl("https://cloudinary.test/products/main.png");
+        product.setImgPublicId("products/main");
         product.setPrice(199.9);
-        product.setIconUrl("icon.png");
+        product.setIconUrl("https://cloudinary.test/products/icon.png");
+        product.setIconPublicId("products/icon");
         product.setTemperaturaDeCor("3000K");
         product.setLedsPorMetro(60);
         product.setTipoLed("SMD");
@@ -97,5 +106,26 @@ public abstract class AbstractWebIntegrationTest {
         product.setActive(true);
         product.setCategories(Collections.singleton(category));
         return productRepository.save(product);
+    }
+
+    @TestConfiguration
+    static class TestProductImageStorageConfig {
+        @Bean
+        @Primary
+        ProductImageStorageService productImageStorageService() {
+            return new ProductImageStorageService() {
+                @Override
+                public StoredImage upload(Long productId, String imageType, org.springframework.web.multipart.MultipartFile file) {
+                    return new StoredImage(
+                            "https://cloudinary.test/products/" + productId + "/" + imageType + "/" + file.getOriginalFilename(),
+                            "products/" + productId + "/" + imageType + "/" + file.getOriginalFilename()
+                    );
+                }
+
+                @Override
+                public void delete(String publicId) {
+                }
+            };
+        }
     }
 }

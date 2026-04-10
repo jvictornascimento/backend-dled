@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -90,7 +93,7 @@ public class ProductController {
     @PostMapping
     @Operation(
             summary = "Create product",
-            description = "Creates a new product. The status uses English enum values for frontend translation. The imgUrl and iconUrl fields must contain public URLs that the frontend can interpret and render for the client. Internal notes are intentionally not exposed by this public API."
+            description = "Creates a new product. The status uses English enum values for frontend translation. Product images are not accepted in this step. Save the product first, then upload the main image, icon and gallery images using the dedicated endpoints. Internal notes are intentionally not exposed by this public API."
     )
     @ApiResponse(responseCode = "201", description = "Product created",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailDto.class)))
@@ -103,7 +106,7 @@ public class ProductController {
     @PutMapping("/{productId}")
     @Operation(
             summary = "Update product",
-            description = "Updates an existing product. The status uses English enum values for frontend translation. The imgUrl and iconUrl fields must contain public URLs that the frontend can interpret and render for the client. Internal notes are intentionally not exposed by this public API."
+            description = "Updates an existing product. The status uses English enum values for frontend translation. Product images are not accepted in this step. Upload them only after the product already exists. Internal notes are intentionally not exposed by this public API."
     )
     @ApiResponse(responseCode = "200", description = "Product updated",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailDto.class)))
@@ -126,5 +129,42 @@ public class ProductController {
             @PathVariable Long productId) {
         service.delete(productId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{productId}/images/main", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload main image", description = "Uploads the main image to Cloudinary for an existing product. The secure URL returned by Cloudinary is persisted in imgUrl.")
+    public ResponseEntity<ProductDetailDto> uploadMainImage(
+            @Parameter(required = true, description = "Product ID", example = "1")
+            @PathVariable Long productId,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(service.uploadMainImage(productId, file));
+    }
+
+    @PostMapping(value = "/{productId}/images/icon", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload icon image", description = "Uploads the card/icon image to Cloudinary for an existing product. The secure URL returned by Cloudinary is persisted in iconUrl.")
+    public ResponseEntity<ProductDetailDto> uploadIconImage(
+            @Parameter(required = true, description = "Product ID", example = "1")
+            @PathVariable Long productId,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(service.uploadIconImage(productId, file));
+    }
+
+    @PostMapping(value = "/{productId}/gallery", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Add gallery image", description = "Uploads a gallery image to Cloudinary for an existing product. Each product supports up to 5 gallery images to avoid unnecessary storage usage.")
+    public ResponseEntity<ProductDetailDto> addGalleryImage(
+            @Parameter(required = true, description = "Product ID", example = "1")
+            @PathVariable Long productId,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(service.addGalleryImage(productId, file));
+    }
+
+    @DeleteMapping("/{productId}/gallery/{imageId}")
+    @Operation(summary = "Remove gallery image", description = "Removes a gallery image from the product and deletes the associated asset from Cloudinary.")
+    public ResponseEntity<ProductDetailDto> removeGalleryImage(
+            @Parameter(required = true, description = "Product ID", example = "1")
+            @PathVariable Long productId,
+            @Parameter(required = true, description = "Gallery image ID", example = "1")
+            @PathVariable Long imageId) {
+        return ResponseEntity.ok(service.removeGalleryImage(productId, imageId));
     }
 }

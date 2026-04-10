@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(ApiKeyProperties.class)
+@EnableConfigurationProperties({ApiKeyProperties.class, CloudinaryProperties.class})
 public class WebConfig implements WebMvcConfigurer {
     @Value("${cors.origin}")
     private String corsOrigin;

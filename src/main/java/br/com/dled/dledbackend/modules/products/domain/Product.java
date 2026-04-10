@@ -8,7 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -50,8 +52,10 @@ public class Product {
     private long gtin;
     private int volt;
     private String imgUrl;
+    private String imgPublicId;
     private Double price;
     private String iconUrl;
+    private String iconPublicId;
     private String temperaturaDeCor;
     private int ledsPorMetro;
     private String tipoLed;
@@ -62,6 +66,9 @@ public class Product {
     private int espessura;
     private boolean blindada;
     private String dimensao;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    private List<ProductGalleryImage> galleryImages = new ArrayList<>();
     private LocalDateTime createdAt;
     @NotNull
     private boolean active;

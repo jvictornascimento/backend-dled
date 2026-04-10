@@ -5,6 +5,7 @@ import br.com.dled.dledbackend.modules.products.domain.ProductStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public record ProductDetailDto(
@@ -64,6 +65,8 @@ public record ProductDetailDto(
         boolean blindada,
         @Schema(description = "Product dimension")
         String dimensao,
+        @Schema(description = "Mini gallery with up to 5 product images")
+        List<ProductGalleryImageDto> galleryImages,
         @Schema(description = "Creation date and time")
         LocalDateTime createdAt,
         @Schema(description = "Indicates if the product is active", example = "true")
