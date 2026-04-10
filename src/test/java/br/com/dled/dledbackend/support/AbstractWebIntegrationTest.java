@@ -2,6 +2,11 @@ package br.com.dled.dledbackend.support;
 
 import br.com.dled.dledbackend.modules.categories.domain.Category;
 import br.com.dled.dledbackend.modules.categories.infrastructure.CategoryRepository;
+import br.com.dled.dledbackend.modules.companies.domain.Company;
+import br.com.dled.dledbackend.modules.companies.domain.CompanyType;
+import br.com.dled.dledbackend.modules.companies.infrastructure.CompanyRepository;
+import br.com.dled.dledbackend.modules.orders.domain.Order;
+import br.com.dled.dledbackend.modules.orders.infrastructure.OrderRepository;
 import br.com.dled.dledbackend.modules.products.application.storage.ProductImageStorageService;
 import br.com.dled.dledbackend.modules.products.domain.Product;
 import br.com.dled.dledbackend.modules.products.domain.ProductStatus;
@@ -19,8 +24,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -42,14 +50,25 @@ public abstract class AbstractWebIntegrationTest {
     protected ProductRespository productRepository;
 
     @Autowired
+    protected CompanyRepository companyRepository;
+
+    @Autowired
+    protected OrderRepository orderRepository;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void resetDatabase() {
+        jdbcTemplate.execute("DELETE FROM order_products");
+        jdbcTemplate.execute("DELETE FROM orders");
         jdbcTemplate.execute("DELETE FROM product_gallery_image");
         jdbcTemplate.execute("DELETE FROM product_category");
         jdbcTemplate.execute("DELETE FROM product");
         jdbcTemplate.execute("ALTER TABLE product ALTER COLUMN id RESTART WITH 1");
+        jdbcTemplate.execute("DELETE FROM company");
+        jdbcTemplate.execute("ALTER TABLE company ALTER COLUMN id RESTART WITH 1");
+        jdbcTemplate.execute("ALTER TABLE orders ALTER COLUMN id RESTART WITH 1");
         jdbcTemplate.execute("DELETE FROM category");
         jdbcTemplate.execute("ALTER TABLE category ALTER COLUMN id RESTART WITH 1");
     }
@@ -106,6 +125,23 @@ public abstract class AbstractWebIntegrationTest {
         product.setActive(true);
         product.setCategories(Collections.singleton(category));
         return productRepository.save(product);
+    }
+
+    protected Company saveCompany(String shortName, String fullName, CompanyType type) {
+        Company company = new Company();
+        company.setShortName(shortName);
+        company.setFullName(fullName);
+        company.setType(type);
+        return companyRepository.save(company);
+    }
+
+    protected Order saveOrder(LocalDate purchaseDate, String lot, Company company, Product... products) {
+        Order order = new Order();
+        order.setPurchaseDate(purchaseDate);
+        order.setLot(lot);
+        order.setCompany(company);
+        order.setProducts(new LinkedHashSet<>(List.of(products)));
+        return orderRepository.save(order);
     }
 
     @TestConfiguration
