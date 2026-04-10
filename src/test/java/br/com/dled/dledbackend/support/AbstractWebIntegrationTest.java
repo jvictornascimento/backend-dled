@@ -11,6 +11,7 @@ import br.com.dled.dledbackend.modules.products.application.storage.ProductImage
 import br.com.dled.dledbackend.modules.products.domain.Product;
 import br.com.dled.dledbackend.modules.products.domain.ProductStatus;
 import br.com.dled.dledbackend.modules.products.infrastructure.ProductRespository;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,15 +31,16 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 @Import(AbstractWebIntegrationTest.TestProductImageStorageConfig.class)
 public abstract class AbstractWebIntegrationTest {
-
-    protected static final String API_KEY_HEADER = "X-API-Key";
-    protected static final String API_KEY_VALUE = "test-api-key";
 
     @Autowired
     protected MockMvc mockMvc;
@@ -71,6 +73,27 @@ public abstract class AbstractWebIntegrationTest {
         jdbcTemplate.execute("ALTER TABLE orders ALTER COLUMN id RESTART WITH 1");
         jdbcTemplate.execute("DELETE FROM category");
         jdbcTemplate.execute("ALTER TABLE category ALTER COLUMN id RESTART WITH 1");
+    }
+
+    protected Cookie authCookie() throws Exception {
+        return authCookie("user", "123456");
+    }
+
+    protected Cookie authCookie(String username, String password) throws Exception {
+        var response = mockMvc.perform(post("/v1/auth/login")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "username": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(username, password)))
+                .andReturn()
+                .getResponse();
+
+        Cookie cookie = response.getCookie("AUTH_TOKEN");
+        assertThat(cookie).isNotNull();
+        return cookie;
     }
 
     protected Category saveRootCategory(String name) {

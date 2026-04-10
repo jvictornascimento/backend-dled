@@ -21,6 +21,9 @@ public class BaseMessageError {
     public static final BaseMessageError PRODUCT_NOT_FOUND = new BaseMessageError("product.notFound");
     public static final BaseMessageError COMPANY_NOT_FOUND = new BaseMessageError("company.notFound");
     public static final BaseMessageError ORDER_NOT_FOUND = new BaseMessageError("order.notFound");
+    public static final BaseMessageError USER_NOT_FOUND = new BaseMessageError("user.notFound");
+    public static final BaseMessageError USERNAME_ALREADY_EXISTS = new BaseMessageError("user.usernameAlreadyExists");
+    public static final BaseMessageError USER_EMAIL_ALREADY_EXISTS = new BaseMessageError("user.emailAlreadyExists");
     public  BaseMessageError params(final String ... params) {
         this.params = ArrayUtils.clone(params);
         return this;

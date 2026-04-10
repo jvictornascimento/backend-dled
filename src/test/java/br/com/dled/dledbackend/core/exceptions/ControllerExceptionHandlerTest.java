@@ -20,8 +20,8 @@ class ControllerExceptionHandlerTest {
         StandardError response = handler.internalServerError(new RuntimeException("boom"), request).getBody();
 
         assertEquals(500, response.status());
-        assertEquals("An error occurred during processing", response.error());
-        assertEquals("boom", response.message());
+        assertEquals("Internal Server Error", response.error());
+        assertEquals("An error occurred during processing", response.message());
     }
 
     @Test
@@ -34,7 +34,8 @@ class ControllerExceptionHandlerTest {
         ).getBody();
 
         assertEquals(405, response.status());
-        assertEquals("The method [GET] is not allowed for this resource", response.error());
+        assertEquals("Method Not Allowed", response.error());
+        assertEquals("The method [GET] is not allowed for this resource", response.message());
     }
 
     @Test
@@ -44,7 +45,8 @@ class ControllerExceptionHandlerTest {
         StandardError response = handler.categoryNotFound(new CategoryNotFoundException("Category not found"), request).getBody();
 
         assertEquals(404, response.status());
-        assertEquals("User not found", response.error());
+        assertEquals("Not Found", response.error());
+        assertEquals("Category not found", response.message());
     }
 
     @Test
@@ -54,7 +56,8 @@ class ControllerExceptionHandlerTest {
         StandardError response = handler.productNotFound(new ProductNotFoundException("Product not found"), request).getBody();
 
         assertEquals(404, response.status());
-        assertEquals("Product not found", response.error());
+        assertEquals("Not Found", response.error());
+        assertEquals("Product not found", response.message());
     }
 
     @Test
@@ -64,7 +67,8 @@ class ControllerExceptionHandlerTest {
         StandardError response = handler.invalidApiKey(new InvalidApiKeyException("Invalid or missing API key"), request).getBody();
 
         assertEquals(401, response.status());
-        assertEquals("Invalid or missing API key", response.error());
+        assertEquals("Unauthorized", response.error());
+        assertEquals("Invalid or missing API key", response.message());
     }
 
     private MockHttpServletRequest request(String uri) {

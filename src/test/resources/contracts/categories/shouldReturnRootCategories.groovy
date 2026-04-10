@@ -7,9 +7,6 @@ Contract.make {
     request {
         method GET()
         url "/v1/categories/root"
-        headers {
-            header("X-API-Key", "test-api-key")
-        }
     }
     response {
         status OK()

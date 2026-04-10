@@ -3,12 +3,10 @@ package br.com.dled.dledbackend.infrastructure.security;
 import br.com.dled.dledbackend.infrastructure.config.ApiKeyProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import static br.com.dled.dledbackend.core.exceptions.BaseMessageError.INVALID_API_KEY;
 
-@Component
 @RequiredArgsConstructor
 public class ApiKeyInterceptor implements HandlerInterceptor {
     private final ApiKeyProperties apiKeyProperties;
