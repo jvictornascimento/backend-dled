@@ -23,7 +23,7 @@ jobs:
           cache: maven
 
       - name: Run Verify
-        run: bash mvnw verify
+        run: ./mvnw --batch-mode -Dspring.cloud.contract.skip=false verify
 
       - name: Upload JaCoCo Report
         if: always()
@@ -41,6 +41,50 @@ jobs:
             target/surefire-reports/
             target/failsafe-reports/
 
+  maven-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Show Maven Version
+        run: mvn -v
+
+      - name: Clean And Compile With System Maven
+        run: mvn --batch-mode clean compile
+
+      - name: Smoke Test Startup With System Maven
+        run: |
+          set +e
+          timeout 120s mvn --batch-mode spring-boot:run > maven-smoke.log 2>&1
+          exit_code=$?
+          set -e
+
+          cat maven-smoke.log
+
+          if grep -Eq "password authentication failed|Connection refused|Unable to obtain isolated JDBC connection|Unable to determine Dialect without JDBC metadata" maven-smoke.log; then
+            exit 0
+          fi
+
+          echo "A aplicacao nao falhou por causa do banco de dados."
+          echo "Exit code: ${exit_code}"
+          exit 1
+
+      - name: Upload Maven Smoke Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-smoke-log
+          path: maven-smoke.log
+
   security-scan:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -57,7 +101,7 @@ jobs:
           cache: maven
 
       - name: Run OWASP Dependency Check
-        run: bash mvnw -Psecurity-scan -DskipTests verify
+        run: ./mvnw --batch-mode -Psecurity-scan -DskipTests verify
 
       - name: Upload Dependency Check Report
         if: always()
