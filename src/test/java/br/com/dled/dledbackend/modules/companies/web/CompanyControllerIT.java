@@ -23,7 +23,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(get("/v1/companies")
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].shortName").value("DLED"))
                 .andExpect(jsonPath("$[0].type").value("OWN"))
@@ -36,7 +36,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("DLED", "DLED Lighting", CompanyType.OWN);
 
         mockMvc.perform(get("/v1/companies/{id}", company.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(company.getId()))
                 .andExpect(jsonPath("$.shortName").value("DLED"))
@@ -48,23 +48,25 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenCompanyDoesNotExist() throws Exception {
         mockMvc.perform(get("/v1/companies/{id}", 999L)
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Company not found"));
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("Company not found"));
     }
 
     @Test
     void shouldReturnMethodNotAllowedForUnsupportedRequest() throws Exception {
         mockMvc.perform(patch("/v1/companies")
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isMethodNotAllowed())
-                .andExpect(jsonPath("$.status").value(405));
+                .andExpect(jsonPath("$.status").value(405))
+                .andExpect(jsonPath("$.error").value("Method Not Allowed"));
     }
 
     @Test
     void shouldCreateCompany() throws Exception {
         mockMvc.perform(post("/v1/companies")
-                        .header(API_KEY_HEADER, API_KEY_VALUE)
+                        .cookie(authCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -93,7 +95,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(put("/v1/companies/{id}", company.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE)
+                        .cookie(authCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -119,7 +121,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(delete("/v1/companies/{id}", company.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isNoContent());
 
         assertThat(companyRepository.findById(company.getId())).isEmpty();

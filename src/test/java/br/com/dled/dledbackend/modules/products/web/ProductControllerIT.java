@@ -20,18 +20,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductControllerIT extends AbstractWebIntegrationTest {
 
     @Test
-    void shouldReturnUnauthorizedWhenApiKeyIsMissing() throws Exception {
+    void shouldReturnUnauthorizedWhenAuthenticationIsMissing() throws Exception {
         mockMvc.perform(get("/v1/products"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Invalid or missing API key"));
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.message").value("Authentication required"));
     }
 
     @Test
-    void shouldReturnUnauthorizedWhenApiKeyIsInvalid() throws Exception {
+    void shouldReturnUnauthorizedWhenTokenIsInvalid() throws Exception {
         mockMvc.perform(get("/v1/products")
-                        .header(API_KEY_HEADER, "wrong-key"))
+                        .cookie(new org.springframework.mock.web.MockCookie("AUTH_TOKEN", "wrong-token")))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Invalid or missing API key"));
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.message").value("Invalid or expired token"));
     }
 
     @Test
@@ -40,7 +42,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         saveProduct("Driver 24W", category);
 
         mockMvc.perform(get("/v1/products")
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Driver 24W"))
                 .andExpect(jsonPath("$[0].status").value("AVAILABLE"))
@@ -53,7 +55,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         Product product = saveProduct("Fita LED", category);
 
         mockMvc.perform(get("/v1/products/{id}", product.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(product.getId()))
                 .andExpect(jsonPath("$.name").value("Fita LED"))
@@ -70,17 +72,19 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenProductDoesNotExist() throws Exception {
         mockMvc.perform(get("/v1/products/{id}", 999L)
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Product not found"));
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("Product not found"));
     }
 
     @Test
     void shouldReturnMethodNotAllowedForUnsupportedRequest() throws Exception {
         mockMvc.perform(patch("/v1/products")
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isMethodNotAllowed())
-                .andExpect(jsonPath("$.status").value(405));
+                .andExpect(jsonPath("$.status").value(405))
+                .andExpect(jsonPath("$.error").value("Method Not Allowed"));
     }
 
     @Test
@@ -88,7 +92,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         Category category = saveRootCategory("Drivers");
 
         mockMvc.perform(post("/v1/products")
-                        .header(API_KEY_HEADER, API_KEY_VALUE)
+                        .cookie(authCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -154,7 +158,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         Product product = saveProduct("Driver 24W", originalCategory);
 
         mockMvc.perform(put("/v1/products/{id}", product.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE)
+                        .cookie(authCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -219,7 +223,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         Product product = saveProduct("Driver 24W", category);
 
         mockMvc.perform(delete("/v1/products/{id}", product.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isNoContent());
 
         assertThat(productRepository.findById(product.getId())).isEmpty();
@@ -231,7 +235,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(multipart("/v1/products/{id}/images/main", 999L)
                         .file(file)
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isNotFound());
     }
 
@@ -243,7 +247,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(multipart("/v1/products/{id}/images/main", product.getId())
                         .file(file)
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imgUrl").value("https://cloudinary.test/products/" + product.getId() + "/main/main.png"));
 
@@ -261,7 +265,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
             MockMultipartFile file = new MockMultipartFile("file", "gallery-" + index + ".png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
             mockMvc.perform(multipart("/v1/products/{id}/gallery", product.getId())
                             .file(file)
-                            .header(API_KEY_HEADER, API_KEY_VALUE))
+                            .cookie(authCookie()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.galleryImages.length()").value(index));
         }
@@ -269,8 +273,9 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         MockMultipartFile sixth = new MockMultipartFile("file", "gallery-6.png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
         mockMvc.perform(multipart("/v1/products/{id}/gallery", product.getId())
                         .file(sixth)
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Bad Request"))
                 .andExpect(jsonPath("$.message").value("Product gallery supports up to 5 images."));
     }
 }

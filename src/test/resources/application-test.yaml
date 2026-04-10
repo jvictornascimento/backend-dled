@@ -1,9 +1,11 @@
 api:
   prefix: /v1
 security:
-  api-key:
-    header-name: X-API-Key
-    value: test-api-key
+  jwt:
+    secret: 0123456789012345678901234567890123456789012345678901234567890123
+    expiration-minutes: 120
+    cookie-name: AUTH_TOKEN
+    cookie-secure: false
 cors:
   origin: http://localhost:8080
 spring:
@@ -12,7 +14,11 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+  sql:
+    init:
+      mode: always
   jpa:
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: create-drop
 server:

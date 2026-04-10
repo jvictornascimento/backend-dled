@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 public class ApiContractBase extends AbstractWebIntegrationTest {
 
     @BeforeEach
-    void setUpContractData() {
+    void setUpContractData() throws Exception {
         Category category = saveRootCategory("Drivers");
         Product product = saveProduct("Driver 24W", category);
 
@@ -17,6 +17,9 @@ public class ApiContractBase extends AbstractWebIntegrationTest {
             throw new IllegalStateException("Contract data was not created");
         }
 
+        var authCookie = authCookie();
         RestAssuredMockMvc.mockMvc(mockMvc);
+        RestAssuredMockMvc.requestSpecification = RestAssuredMockMvc.given()
+                .cookie(authCookie.getName(), authCookie.getValue());
     }
 }

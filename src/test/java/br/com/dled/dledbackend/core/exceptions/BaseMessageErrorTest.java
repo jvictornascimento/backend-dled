@@ -8,7 +8,7 @@ class BaseMessageErrorTest {
 
     @Test
     void shouldReturnMessageWithoutParams() {
-        assertEquals("User not found", BaseMessageError.CATEGORY_NOT_FOUND.getMassage());
+        assertEquals("Category not found", BaseMessageError.CATEGORY_NOT_FOUND.getMassage());
     }
 
     @Test

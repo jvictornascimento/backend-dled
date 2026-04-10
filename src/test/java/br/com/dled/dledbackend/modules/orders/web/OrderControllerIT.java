@@ -31,7 +31,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         saveOrder(LocalDate.of(2026, 4, 10), "L-2026-001", company, firstProduct, secondProduct);
 
         mockMvc.perform(get("/v1/orders")
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].lot").value("L-2026-001"))
                 .andExpect(jsonPath("$[0].purchaseDate").value("2026-04-10"))
@@ -47,7 +47,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 9), "L-2026-002", company, product);
 
         mockMvc.perform(get("/v1/orders/{id}", order.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(order.getId()))
                 .andExpect(jsonPath("$.lot").value("L-2026-002"))
@@ -60,17 +60,19 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenOrderDoesNotExist() throws Exception {
         mockMvc.perform(get("/v1/orders/{id}", 999L)
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Order not found"));
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("Order not found"));
     }
 
     @Test
     void shouldReturnMethodNotAllowedForUnsupportedRequest() throws Exception {
         mockMvc.perform(patch("/v1/orders")
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isMethodNotAllowed())
-                .andExpect(jsonPath("$.status").value(405));
+                .andExpect(jsonPath("$.status").value(405))
+                .andExpect(jsonPath("$.error").value("Method Not Allowed"));
     }
 
     @Test
@@ -81,7 +83,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(post("/v1/orders")
-                        .header(API_KEY_HEADER, API_KEY_VALUE)
+                        .cookie(authCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -118,7 +120,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 9), "L-2026-004", originalCompany, originalProduct);
 
         mockMvc.perform(put("/v1/orders/{id}", order.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE)
+                        .cookie(authCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -151,7 +153,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 10), "L-2026-006", company, product);
 
         mockMvc.perform(delete("/v1/orders/{id}", order.getId())
-                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                        .cookie(authCookie()))
                 .andExpect(status().isNoContent());
 
         assertThat(orderRepository.findById(order.getId())).isEmpty();
