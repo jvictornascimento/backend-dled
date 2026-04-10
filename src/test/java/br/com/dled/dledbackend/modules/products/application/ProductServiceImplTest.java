@@ -5,6 +5,7 @@ import br.com.dled.dledbackend.modules.products.application.dto.ProductDetailDto
 import br.com.dled.dledbackend.modules.products.application.exception.ProductNotFoundException;
 import br.com.dled.dledbackend.modules.products.application.mapper.IProductMapper;
 import br.com.dled.dledbackend.modules.products.domain.Product;
+import br.com.dled.dledbackend.modules.products.domain.ProductStatus;
 import br.com.dled.dledbackend.modules.products.infrastructure.ProductRespository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +39,7 @@ class ProductServiceImplTest {
     @Test
     void shouldReturnMappedProductCards() {
         Product product = createProduct(1L, true);
-        ProductCardDto dto = new ProductCardDto(1L, "Produto", 99.9, "icon.png", 10, 20, Collections.emptySet());
+        ProductCardDto dto = new ProductCardDto(1L, "Produto", 99.9, "icon.png", 10, 20, ProductStatus.AVAILABLE, Collections.emptySet());
 
         when(repository.findAllActiveWithCategories()).thenReturn(List.of(product));
         when(mapper.fromOutList(product)).thenReturn(dto);
@@ -59,7 +60,11 @@ class ProductServiceImplTest {
                 10,
                 20,
                 Collections.emptySet(),
+                ProductStatus.AVAILABLE,
                 "Descricao",
+                "Evitar locais umidos.",
+                "Usar em ambiente interno.",
+                "Lote premium.",
                 65,
                 5,
                 24,
@@ -114,6 +119,11 @@ class ProductServiceImplTest {
         product.setCodigoRusso(10);
         product.setCodigoMali(20);
         product.setDescricao("Descricao");
+        product.setStatus(ProductStatus.AVAILABLE);
+        product.setRestricoesDeUso("Evitar locais umidos.");
+        product.setRecomendacoesDeUso("Usar em ambiente interno.");
+        product.setObservacoesEspeciais("Lote premium.");
+        product.setObservacoesInternas("Somente time interno.");
         product.setIp(65);
         product.setAmper(5);
         product.setWatts(24);

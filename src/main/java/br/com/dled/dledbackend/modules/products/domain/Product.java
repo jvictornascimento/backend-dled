@@ -31,7 +31,18 @@ public class Product {
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
     private Set<Category> categories = new HashSet<>();
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    private ProductStatus status;
     private String descricao;
+    @Column(columnDefinition = "TEXT")
+    private String restricoesDeUso;
+    @Column(columnDefinition = "TEXT")
+    private String recomendacoesDeUso;
+    @Column(columnDefinition = "TEXT")
+    private String observacoesEspeciais;
+    @Column(columnDefinition = "TEXT")
+    private String observacoesInternas;
     private int ip;
     private int amper;
     private int watts;
