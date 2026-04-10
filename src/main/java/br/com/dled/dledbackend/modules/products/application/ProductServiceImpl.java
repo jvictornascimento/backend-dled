@@ -71,7 +71,11 @@ public class ProductServiceImpl implements IProductService{
         product.setCodigoRusso(input.codigoRusso());
         product.setCodigoMali(input.codigoMali());
         product.setCategories(resolveCategories(input.categoryIds()));
+        product.setStatus(input.status());
         product.setDescricao(input.descricao());
+        product.setRestricoesDeUso(input.restricoesDeUso());
+        product.setRecomendacoesDeUso(input.recomendacoesDeUso());
+        product.setObservacoesEspeciais(input.observacoesEspeciais());
         product.setIp(input.ip());
         product.setAmper(input.amper());
         product.setWatts(input.watts());

@@ -41,6 +41,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                         .header(API_KEY_HEADER, API_KEY_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Driver 24W"))
+                .andExpect(jsonPath("$[0].status").value("AVAILABLE"))
                 .andExpect(jsonPath("$[0].categories[0].name").value("Drivers"));
     }
 
@@ -54,7 +55,12 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(product.getId()))
                 .andExpect(jsonPath("$.name").value("Fita LED"))
+                .andExpect(jsonPath("$.status").value("AVAILABLE"))
                 .andExpect(jsonPath("$.descricao").value("Product description"))
+                .andExpect(jsonPath("$.restricoesDeUso").value("Evitar ambientes com maresia."))
+                .andExpect(jsonPath("$.recomendacoesDeUso").value("Indicado para ambientes internos."))
+                .andExpect(jsonPath("$.observacoesEspeciais").value("Garantia de 12 meses."))
+                .andExpect(jsonPath("$.observacoesInternas").doesNotExist())
                 .andExpect(jsonPath("$.categories[0].name").value("Fitas"));
     }
 
@@ -87,7 +93,11 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                                   "codigoRusso": 321,
                                   "codigoMali": 654,
                                   "categoryIds": [%d],
+                                  "status": "AVAILABLE",
                                   "descricao": "Driver para fitas LED",
+                                  "restricoesDeUso": "Nao usar em area externa.",
+                                  "recomendacoesDeUso": "Usar em gesso e marcenaria.",
+                                  "observacoesEspeciais": "Produto com lote especial.",
                                   "ip": 65,
                                   "amper": 5,
                                   "watts": 60,
@@ -114,13 +124,22 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(jsonPath("$.name").value("Driver 60W"))
                 .andExpect(jsonPath("$.codigoRusso").value(321))
                 .andExpect(jsonPath("$.codigoMali").value(654))
+                .andExpect(jsonPath("$.status").value("AVAILABLE"))
                 .andExpect(jsonPath("$.descricao").value("Driver para fitas LED"))
+                .andExpect(jsonPath("$.restricoesDeUso").value("Nao usar em area externa."))
+                .andExpect(jsonPath("$.recomendacoesDeUso").value("Usar em gesso e marcenaria."))
+                .andExpect(jsonPath("$.observacoesEspeciais").value("Produto com lote especial."))
+                .andExpect(jsonPath("$.observacoesInternas").doesNotExist())
                 .andExpect(jsonPath("$.categories[0].name").value("Drivers"));
 
         assertThat(productRepository.findAll())
                 .anySatisfy(product -> {
                     assertThat(product.getName()).isEqualTo("Driver 60W");
                     assertThat(product.getCodigoRusso()).isEqualTo(321);
+                    assertThat(product.getStatus().name()).isEqualTo("AVAILABLE");
+                    assertThat(product.getRestricoesDeUso()).isEqualTo("Nao usar em area externa.");
+                    assertThat(product.getRecomendacoesDeUso()).isEqualTo("Usar em gesso e marcenaria.");
+                    assertThat(product.getObservacoesEspeciais()).isEqualTo("Produto com lote especial.");
                     assertThat(product.getCategories()).extracting(Category::getId).contains(category.getId());
                 });
     }
@@ -140,7 +159,11 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                                   "codigoRusso": 777,
                                   "codigoMali": 888,
                                   "categoryIds": [%d],
+                                  "status": "ON_REQUEST",
                                   "descricao": "Perfil atualizado",
+                                  "restricoesDeUso": "Nao instalar em local umido.",
+                                  "recomendacoesDeUso": "Aplicar com fonte estabilizada.",
+                                  "observacoesEspeciais": "Revisar lote na expedicao.",
                                   "ip": 20,
                                   "amper": 2,
                                   "watts": 12,
@@ -167,13 +190,22 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(jsonPath("$.name").value("Perfil 12W"))
                 .andExpect(jsonPath("$.codigoRusso").value(777))
                 .andExpect(jsonPath("$.codigoMali").value(888))
+                .andExpect(jsonPath("$.status").value("ON_REQUEST"))
                 .andExpect(jsonPath("$.descricao").value("Perfil atualizado"))
+                .andExpect(jsonPath("$.restricoesDeUso").value("Nao instalar em local umido."))
+                .andExpect(jsonPath("$.recomendacoesDeUso").value("Aplicar com fonte estabilizada."))
+                .andExpect(jsonPath("$.observacoesEspeciais").value("Revisar lote na expedicao."))
+                .andExpect(jsonPath("$.observacoesInternas").doesNotExist())
                 .andExpect(jsonPath("$.categories[0].name").value("Perfis"))
                 .andExpect(jsonPath("$.active").value(false));
 
         Product updated = productRepository.findById(product.getId()).orElseThrow();
         assertThat(updated.getName()).isEqualTo("Perfil 12W");
         assertThat(updated.getCodigoRusso()).isEqualTo(777);
+        assertThat(updated.getStatus().name()).isEqualTo("ON_REQUEST");
+        assertThat(updated.getRestricoesDeUso()).isEqualTo("Nao instalar em local umido.");
+        assertThat(updated.getRecomendacoesDeUso()).isEqualTo("Aplicar com fonte estabilizada.");
+        assertThat(updated.getObservacoesEspeciais()).isEqualTo("Revisar lote na expedicao.");
         assertThat(updated.getCategories()).extracting(Category::getId).containsExactly(updatedCategory.getId());
         assertThat(updated.isActive()).isFalse();
     }

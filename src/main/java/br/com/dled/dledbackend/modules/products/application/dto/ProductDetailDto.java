@@ -1,6 +1,7 @@
 package br.com.dled.dledbackend.modules.products.application.dto;
 
 import br.com.dled.dledbackend.modules.categories.application.dto.CategoryForProductDTO;
+import br.com.dled.dledbackend.modules.products.domain.ProductStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -17,8 +18,16 @@ public record ProductDetailDto(
         int codigoMali,
         @Schema(description = "Categories associated with the product")
         Set<CategoryForProductDTO> categories,
+        @Schema(description = "Availability status", example = "AVAILABLE")
+        ProductStatus status,
         @Schema(description = "Product description")
         String descricao,
+        @Schema(description = "Usage restrictions for the product", example = "Do not use in outdoor areas.")
+        String restricoesDeUso,
+        @Schema(description = "Usage recommendations for the product", example = "Recommended for indoor lighting projects.")
+        String recomendacoesDeUso,
+        @Schema(description = "Special observations visible to clients", example = "Special lot with 12 months warranty.")
+        String observacoesEspeciais,
         @Schema(description = "Product IP", example = "65")
         int ip,
         @Schema(description = "Product amperage", example = "5")

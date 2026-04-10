@@ -90,7 +90,7 @@ public class ProductController {
     @PostMapping
     @Operation(
             summary = "Create product",
-            description = "Creates a new product. The imgUrl and iconUrl fields must contain public URLs that the frontend can interpret and render for the client."
+            description = "Creates a new product. The status uses English enum values for frontend translation. The imgUrl and iconUrl fields must contain public URLs that the frontend can interpret and render for the client. Internal notes are intentionally not exposed by this public API."
     )
     @ApiResponse(responseCode = "201", description = "Product created",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailDto.class)))
@@ -103,7 +103,7 @@ public class ProductController {
     @PutMapping("/{productId}")
     @Operation(
             summary = "Update product",
-            description = "Updates an existing product. The imgUrl and iconUrl fields must contain public URLs that the frontend can interpret and render for the client."
+            description = "Updates an existing product. The status uses English enum values for frontend translation. The imgUrl and iconUrl fields must contain public URLs that the frontend can interpret and render for the client. Internal notes are intentionally not exposed by this public API."
     )
     @ApiResponse(responseCode = "200", description = "Product updated",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProductDetailDto.class)))

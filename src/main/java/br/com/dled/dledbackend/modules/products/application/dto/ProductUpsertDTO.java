@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
+import br.com.dled.dledbackend.modules.products.domain.ProductStatus;
+
 import java.util.Set;
 
 public record ProductUpsertDTO(
@@ -23,8 +25,21 @@ public record ProductUpsertDTO(
         @NotEmpty
         Set<Long> categoryIds,
 
+        @Schema(description = "Availability status for the product", example = "AVAILABLE")
+        @NotNull
+        ProductStatus status,
+
         @Schema(description = "Detailed product description", example = "Driver para fitas LED")
         String descricao,
+
+        @Schema(description = "Usage restrictions visible to clients", example = "Do not use in outdoor areas.")
+        String restricoesDeUso,
+
+        @Schema(description = "Usage recommendations visible to clients", example = "Use with stabilized power supply.")
+        String recomendacoesDeUso,
+
+        @Schema(description = "Special observations visible to clients", example = "Special lot for premium projects.")
+        String observacoesEspeciais,
 
         @Schema(description = "Ingress protection rating", example = "65")
         int ip,
