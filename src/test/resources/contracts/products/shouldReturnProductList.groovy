@@ -21,7 +21,7 @@ Contract.make {
                         id         : 1,
                         name       : "Driver 24W",
                         price      : 199.9,
-                        iconUrl    : "icon.png",
+                        iconUrl    : "https://cloudinary.test/products/icon.png",
                         codigoRusso: 100,
                         codigoMali : 200,
                         categories : [

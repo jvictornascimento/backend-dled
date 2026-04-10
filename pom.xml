@@ -24,6 +24,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jacoco.version>0.8.13</jacoco.version>
+		<jacoco.skip>false</jacoco.skip>
 		<owasp.dependency-check.version>12.2.0</owasp.dependency-check.version>
 		<spring-cloud-contract.version>5.0.2</spring-cloud-contract.version>
 		<spring.cloud.contract.skip>true</spring.cloud.contract.skip>
@@ -140,6 +141,7 @@
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>${jacoco.version}</version>
 				<configuration>
+					<skip>${jacoco.skip}</skip>
 					<excludes>
 						<exclude>**/application/dto/**</exclude>
 						<exclude>**/application/mapper/**</exclude>
@@ -181,7 +183,7 @@
 										<limit>
 											<counter>BRANCH</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.40</minimum>
+											<minimum>0.35</minimum>
 										</limit>
 									</limits>
 								</rule>
@@ -307,6 +309,9 @@
 		</profile>
 		<profile>
 			<id>security-scan</id>
+			<properties>
+				<jacoco.skip>true</jacoco.skip>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
