@@ -1,6 +1,8 @@
 package br.com.dled.dledbackend.core.exceptions;
 
 import br.com.dled.dledbackend.modules.categories.application.exception.CategoryNotFoundException;
+import br.com.dled.dledbackend.modules.companies.application.exception.CompanyNotFoundException;
+import br.com.dled.dledbackend.modules.orders.application.exception.OrderNotFoundException;
 import br.com.dled.dledbackend.modules.products.application.exception.ProductGalleryLimitException;
 import br.com.dled.dledbackend.modules.products.application.exception.ProductImageBadRequestException;
 import br.com.dled.dledbackend.modules.products.application.exception.ProductNotFoundException;
@@ -42,6 +44,20 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<StandardError> productNotFound(ProductNotFoundException e, HttpServletRequest request) {
         var error = PRODUCT_NOT_FOUND.getMassage();
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        var standardError = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(standardError);
+    }
+    @ExceptionHandler(CompanyNotFoundException.class)
+    public ResponseEntity<StandardError> companyNotFound(CompanyNotFoundException e, HttpServletRequest request) {
+        var error = COMPANY_NOT_FOUND.getMassage();
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        var standardError = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(status).body(standardError);
+    }
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<StandardError> orderNotFound(OrderNotFoundException e, HttpServletRequest request) {
+        var error = ORDER_NOT_FOUND.getMassage();
         HttpStatus status = HttpStatus.NOT_FOUND;
         var standardError = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
         return ResponseEntity.status(status).body(standardError);
