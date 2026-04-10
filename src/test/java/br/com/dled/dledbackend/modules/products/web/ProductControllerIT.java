@@ -5,6 +5,7 @@ import br.com.dled.dledbackend.modules.products.domain.Product;
 import br.com.dled.dledbackend.support.AbstractWebIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -60,6 +62,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(jsonPath("$.restricoesDeUso").value("Evitar ambientes com maresia."))
                 .andExpect(jsonPath("$.recomendacoesDeUso").value("Indicado para ambientes internos."))
                 .andExpect(jsonPath("$.observacoesEspeciais").value("Garantia de 12 meses."))
+                .andExpect(jsonPath("$.galleryImages").isArray())
                 .andExpect(jsonPath("$.observacoesInternas").doesNotExist())
                 .andExpect(jsonPath("$.categories[0].name").value("Fitas"));
     }
@@ -103,9 +106,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                                   "watts": 60,
                                   "gtin": 7891234567000,
                                   "volt": 24,
-                                  "imgUrl": "driver-60w.png",
                                   "price": 149.9,
-                                  "iconUrl": "driver-60w-icon.png",
                                   "temperaturaDeCor": "3000K",
                                   "ledsPorMetro": 120,
                                   "tipoLed": "SMD",
@@ -130,6 +131,8 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(jsonPath("$.recomendacoesDeUso").value("Usar em gesso e marcenaria."))
                 .andExpect(jsonPath("$.observacoesEspeciais").value("Produto com lote especial."))
                 .andExpect(jsonPath("$.observacoesInternas").doesNotExist())
+                .andExpect(jsonPath("$.imgUrl").doesNotExist())
+                .andExpect(jsonPath("$.iconUrl").doesNotExist())
                 .andExpect(jsonPath("$.categories[0].name").value("Drivers"));
 
         assertThat(productRepository.findAll())
@@ -169,9 +172,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                                   "watts": 12,
                                   "gtin": 7891234567999,
                                   "volt": 12,
-                                  "imgUrl": "perfil-12w.png",
                                   "price": 89.9,
-                                  "iconUrl": "perfil-12w-icon.png",
                                   "temperaturaDeCor": "4000K",
                                   "ledsPorMetro": 60,
                                   "tipoLed": "COB",
@@ -196,6 +197,8 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(jsonPath("$.recomendacoesDeUso").value("Aplicar com fonte estabilizada."))
                 .andExpect(jsonPath("$.observacoesEspeciais").value("Revisar lote na expedicao."))
                 .andExpect(jsonPath("$.observacoesInternas").doesNotExist())
+                .andExpect(jsonPath("$.imgUrl").value("https://cloudinary.test/products/main.png"))
+                .andExpect(jsonPath("$.iconUrl").value("https://cloudinary.test/products/icon.png"))
                 .andExpect(jsonPath("$.categories[0].name").value("Perfis"))
                 .andExpect(jsonPath("$.active").value(false));
 
@@ -220,5 +223,54 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(status().isNoContent());
 
         assertThat(productRepository.findById(product.getId())).isEmpty();
+    }
+
+    @Test
+    void shouldUploadMainImageOnlyAfterProductExists() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "main.png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
+
+        mockMvc.perform(multipart("/v1/products/{id}/images/main", 999L)
+                        .file(file)
+                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldUploadMainImageForExistingProduct() throws Exception {
+        Category category = saveRootCategory("Drivers");
+        Product product = saveProduct("Driver 24W", category);
+        MockMultipartFile file = new MockMultipartFile("file", "main.png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
+
+        mockMvc.perform(multipart("/v1/products/{id}/images/main", product.getId())
+                        .file(file)
+                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.imgUrl").value("https://cloudinary.test/products/" + product.getId() + "/main/main.png"));
+
+        Product updated = productRepository.findById(product.getId()).orElseThrow();
+        assertThat(updated.getImgUrl()).isEqualTo("https://cloudinary.test/products/" + product.getId() + "/main/main.png");
+        assertThat(updated.getImgPublicId()).isEqualTo("products/" + product.getId() + "/main/main.png");
+    }
+
+    @Test
+    void shouldAddGalleryImageUntilLimitFive() throws Exception {
+        Category category = saveRootCategory("Drivers");
+        Product product = saveProduct("Driver 24W", category);
+
+        for (int index = 1; index <= 5; index++) {
+            MockMultipartFile file = new MockMultipartFile("file", "gallery-" + index + ".png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
+            mockMvc.perform(multipart("/v1/products/{id}/gallery", product.getId())
+                            .file(file)
+                            .header(API_KEY_HEADER, API_KEY_VALUE))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.galleryImages.length()").value(index));
+        }
+
+        MockMultipartFile sixth = new MockMultipartFile("file", "gallery-6.png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
+        mockMvc.perform(multipart("/v1/products/{id}/gallery", product.getId())
+                        .file(sixth)
+                        .header(API_KEY_HEADER, API_KEY_VALUE))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Product gallery supports up to 5 images."));
     }
 }

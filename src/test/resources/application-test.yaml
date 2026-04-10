@@ -17,3 +17,8 @@ spring:
       ddl-auto: create-drop
 server:
   port: 8081
+cloudinary:
+  cloud-name: test-cloud
+  api-key: test-key
+  api-secret: test-secret
+  folder: test/products
