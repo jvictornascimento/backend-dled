@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -41,7 +42,15 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(apiPrefix + "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                apiPrefix + "/products",
+                                apiPrefix + "/products/*",
+                                apiPrefix + "/categories/root",
+                                apiPrefix + "/categories/tree",
+                                apiPrefix + "/categories/*"
+                        ).permitAll()
                         .requestMatchers(apiPrefix + "/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated());

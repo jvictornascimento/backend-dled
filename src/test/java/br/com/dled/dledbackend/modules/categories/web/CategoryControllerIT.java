@@ -21,7 +21,7 @@ class CategoryControllerIT extends AbstractWebIntegrationTest {
         saveRootCategory("Perfis");
 
         mockMvc.perform(get("/v1/categories/root")
-                        .cookie(authCookie()))
+                        .header("X-API-Key", apiKey()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Drivers"))
                 .andExpect(jsonPath("$[1].name").value("Perfis"));
@@ -33,7 +33,7 @@ class CategoryControllerIT extends AbstractWebIntegrationTest {
         saveChildCategory("Acessorios", root);
 
         mockMvc.perform(get("/v1/categories/tree")
-                        .cookie(authCookie()))
+                        .header("X-API-Key", apiKey()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Fitas"))
                 .andExpect(jsonPath("$[0].children").isEmpty())
@@ -46,7 +46,7 @@ class CategoryControllerIT extends AbstractWebIntegrationTest {
         Category category = saveRootCategory("Fontes");
 
         mockMvc.perform(get("/v1/categories/{id}", category.getId())
-                        .cookie(authCookie()))
+                        .header("X-API-Key", apiKey()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(category.getId()))
                 .andExpect(jsonPath("$.name").value("Fontes"))
@@ -56,7 +56,7 @@ class CategoryControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenCategoryDoesNotExist() throws Exception {
         mockMvc.perform(get("/v1/categories/{id}", 999L)
-                        .cookie(authCookie()))
+                        .header("X-API-Key", apiKey()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("Category not found"));

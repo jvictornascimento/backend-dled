@@ -96,6 +96,10 @@ public abstract class AbstractWebIntegrationTest {
         return cookie;
     }
 
+    protected String apiKey() {
+        return "test-api-key";
+    }
+
     protected Category saveRootCategory(String name) {
         Category category = new Category();
         category.setName(name);

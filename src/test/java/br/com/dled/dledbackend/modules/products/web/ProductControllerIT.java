@@ -20,20 +20,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductControllerIT extends AbstractWebIntegrationTest {
 
     @Test
-    void shouldReturnUnauthorizedWhenAuthenticationIsMissing() throws Exception {
+    void shouldReturnUnauthorizedWhenApiKeyIsMissing() throws Exception {
         mockMvc.perform(get("/v1/products"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("Unauthorized"))
-                .andExpect(jsonPath("$.message").value("Authentication required"));
+                .andExpect(jsonPath("$.message").value("Invalid or missing API key"));
     }
 
     @Test
-    void shouldReturnUnauthorizedWhenTokenIsInvalid() throws Exception {
+    void shouldReturnUnauthorizedWhenApiKeyIsInvalid() throws Exception {
         mockMvc.perform(get("/v1/products")
-                        .cookie(new org.springframework.mock.web.MockCookie("AUTH_TOKEN", "wrong-token")))
+                        .header("X-API-Key", "wrong-key"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("Unauthorized"))
-                .andExpect(jsonPath("$.message").value("Invalid or expired token"));
+                .andExpect(jsonPath("$.message").value("Invalid or missing API key"));
     }
 
     @Test
@@ -42,7 +42,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         saveProduct("Driver 24W", category);
 
         mockMvc.perform(get("/v1/products")
-                        .cookie(authCookie()))
+                        .header("X-API-Key", apiKey()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Driver 24W"))
                 .andExpect(jsonPath("$[0].status").value("AVAILABLE"))
@@ -55,7 +55,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         Product product = saveProduct("Fita LED", category);
 
         mockMvc.perform(get("/v1/products/{id}", product.getId())
-                        .cookie(authCookie()))
+                        .header("X-API-Key", apiKey()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(product.getId()))
                 .andExpect(jsonPath("$.name").value("Fita LED"))
@@ -72,7 +72,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenProductDoesNotExist() throws Exception {
         mockMvc.perform(get("/v1/products/{id}", 999L)
-                        .cookie(authCookie()))
+                        .header("X-API-Key", apiKey()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("Product not found"));

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class CategoryController {
 
     @GetMapping("/tree")
     @Operation(summary = "Get all categories in tree format")
+    @SecurityRequirement(name = "apiKeyAuth")
     @ApiResponse(
             responseCode = "200",
             description = "Categories retrieved successfully",
@@ -57,6 +59,7 @@ public class CategoryController {
     }
     @GetMapping("/root")
     @Operation(summary = "Get all root categories")
+    @SecurityRequirement(name = "apiKeyAuth")
     @ApiResponse(
             responseCode = "200",
             description = "Categories retrieved successfully",
@@ -78,6 +81,7 @@ public class CategoryController {
     }
     @GetMapping("/{categoryID}")
     @Operation(summary = "Return Categories")
+    @SecurityRequirement(name = "apiKeyAuth")
     @ApiResponse(
             responseCode = "200",
             description = "Category found",
@@ -109,6 +113,8 @@ public class CategoryController {
 
     @PostMapping
     @Operation(summary = "Create category", description = "Creates a new category. The imgUrl field must contain a public URL that the frontend can render directly.")
+    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "authCookie")
     @ApiResponse(responseCode = "201", description = "Category created",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class)))
     @ApiResponse(responseCode = "404", description = "Parent category not found",
@@ -119,6 +125,8 @@ public class CategoryController {
 
     @PutMapping("/{categoryID}")
     @Operation(summary = "Update category", description = "Updates an existing category. The imgUrl field must contain a public URL that the frontend can render directly.")
+    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "authCookie")
     @ApiResponse(responseCode = "200", description = "Category updated",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class)))
     @ApiResponse(responseCode = "404", description = "Category not found",
@@ -132,6 +140,8 @@ public class CategoryController {
 
     @DeleteMapping("/{categoryID}")
     @Operation(summary = "Delete category", description = "Deletes a category by ID.")
+    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "authCookie")
     @ApiResponse(responseCode = "204", description = "Category deleted")
     @ApiResponse(responseCode = "404", description = "Category not found",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))

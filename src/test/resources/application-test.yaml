@@ -1,6 +1,9 @@
 api:
   prefix: /v1
 security:
+  api-key:
+    header-name: X-API-Key
+    value: test-api-key
   jwt:
     secret: 0123456789012345678901234567890123456789012345678901234567890123
     expiration-minutes: 120
