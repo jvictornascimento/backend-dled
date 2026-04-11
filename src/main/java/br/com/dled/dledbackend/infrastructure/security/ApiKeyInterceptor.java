@@ -15,7 +15,7 @@ public class ApiKeyInterceptor implements HandlerInterceptor {
     public boolean preHandle(jakarta.servlet.http.HttpServletRequest request,
                              jakarta.servlet.http.HttpServletResponse response,
                              Object handler) {
-        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+        if (HttpMethod.OPTIONS.matches(request.getMethod()) || !HttpMethod.GET.matches(request.getMethod())) {
             return true;
         }
 
