@@ -158,4 +158,62 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
 
         assertThat(orderRepository.findById(order.getId())).isEmpty();
     }
+
+    @Test
+    void shouldBuildProductLabel() throws Exception {
+        Category category = saveRootCategory("Drivers");
+        Product product = saveProduct("Driver 24W", category);
+        Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
+        Order order = saveOrder(LocalDate.of(2026, 4, 10), "L-2026-007", company, product);
+
+        mockMvc.perform(post("/v1/orders/labels/products")
+                        .cookie(authCookie())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "orderId": %d,
+                                  "lot": "L-2026-007",
+                                  "productId": %d
+                                }
+                                """.formatted(order.getId(), product.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderId").value(order.getId()))
+                .andExpect(jsonPath("$.lot").value("L-2026-007"))
+                .andExpect(jsonPath("$.productId").value(product.getId()))
+                .andExpect(jsonPath("$.name").value("Driver 24W"))
+                .andExpect(jsonPath("$.descricao").value("Product description"))
+                .andExpect(jsonPath("$.codigoRusso").value(100))
+                .andExpect(jsonPath("$.codigoMali").value(200))
+                .andExpect(jsonPath("$.gtin").value(7891234567890L))
+                .andExpect(jsonPath("$.price").value(199.9))
+                .andExpect(jsonPath("$.status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.watts").value(24))
+                .andExpect(jsonPath("$.volt").value(12))
+                .andExpect(jsonPath("$.amper").value(5))
+                .andExpect(jsonPath("$.ip").value(65))
+                .andExpect(jsonPath("$.temperaturaDeCor").value("3000K"))
+                .andExpect(jsonPath("$.dimensao").value("5m"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenBuildingProductLabelForProductOutsideOrder() throws Exception {
+        Category category = saveRootCategory("Drivers");
+        Product productInOrder = saveProduct("Driver 24W", category);
+        Product productOutsideOrder = saveProduct("Driver 48W", category);
+        Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
+        Order order = saveOrder(LocalDate.of(2026, 4, 10), "L-2026-008", company, productInOrder);
+
+        mockMvc.perform(post("/v1/orders/labels/products")
+                        .cookie(authCookie())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "orderId": %d,
+                                  "lot": "L-2026-008",
+                                  "productId": %d
+                                }
+                                """.formatted(order.getId(), productOutsideOrder.getId())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Product not found"));
+    }
 }

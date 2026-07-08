@@ -5,6 +5,8 @@ import br.com.dled.dledbackend.modules.companies.domain.Company;
 import br.com.dled.dledbackend.modules.companies.infrastructure.CompanyRepository;
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderDto;
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderUpsertDto;
+import br.com.dled.dledbackend.modules.orders.application.dto.PrintLabelProductDTO;
+import br.com.dled.dledbackend.modules.orders.application.dto.PrintLabelProductRequestDto;
 import br.com.dled.dledbackend.modules.orders.application.exception.OrderNotFoundException;
 import br.com.dled.dledbackend.modules.orders.application.mapper.IOrderMapper;
 import br.com.dled.dledbackend.modules.orders.domain.Order;
@@ -60,6 +62,38 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     public void delete(Long orderId) {
         repository.delete(findById(orderId));
+    }
+
+    @Override
+    public PrintLabelProductDTO buildProductLabel(PrintLabelProductRequestDto input) {
+        Order order = findById(input.orderId());
+        if (!order.getLot().equals(input.lot())) {
+            throw new OrderNotFoundException(ORDER_NOT_FOUND.getMassage());
+        }
+
+        Product product = order.getProducts().stream()
+                .filter(item -> item.getId().equals(input.productId()))
+                .findFirst()
+                .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND.getMassage()));
+
+        return new PrintLabelProductDTO(
+                order.getId(),
+                order.getLot(),
+                product.getId(),
+                product.getName(),
+                product.getDescricao(),
+                product.getCodigoRusso(),
+                product.getCodigoMali(),
+                product.getGtin(),
+                product.getPrice(),
+                product.getStatus(),
+                product.getWatts(),
+                product.getVolt(),
+                product.getAmper(),
+                product.getIp(),
+                product.getTemperaturaDeCor(),
+                product.getDimensao()
+        );
     }
 
     private Order findById(Long orderId) {
