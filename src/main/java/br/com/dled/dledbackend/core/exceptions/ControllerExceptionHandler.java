@@ -6,6 +6,7 @@ import br.com.dled.dledbackend.modules.orders.application.exception.OrderNotFoun
 import br.com.dled.dledbackend.modules.products.application.exception.ProductGalleryLimitException;
 import br.com.dled.dledbackend.modules.products.application.exception.ProductImageBadRequestException;
 import br.com.dled.dledbackend.modules.products.application.exception.ProductNotFoundException;
+import br.com.dled.dledbackend.modules.printtemplates.application.exception.PrintTemplateNotFoundException;
 import br.com.dled.dledbackend.modules.users.application.exception.UserEmailAlreadyExistsException;
 import br.com.dled.dledbackend.modules.users.application.exception.UserNotFoundException;
 import br.com.dled.dledbackend.modules.users.application.exception.UsernameAlreadyExistsException;
@@ -64,6 +65,12 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(OrderNotFoundException.class)
     public ResponseEntity<StandardError> orderNotFound(OrderNotFoundException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return buildResponse(status, e.getMessage(), request);
+    }
+
+    @ExceptionHandler(PrintTemplateNotFoundException.class)
+    public ResponseEntity<StandardError> printTemplateNotFound(PrintTemplateNotFoundException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         return buildResponse(status, e.getMessage(), request);
     }
