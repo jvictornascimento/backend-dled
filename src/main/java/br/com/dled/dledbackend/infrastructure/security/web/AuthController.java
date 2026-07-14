@@ -6,6 +6,7 @@ import br.com.dled.dledbackend.infrastructure.security.JwtService;
 import br.com.dled.dledbackend.infrastructure.security.dto.AuthResponse;
 import br.com.dled.dledbackend.infrastructure.security.dto.LoginRequest;
 import br.com.dled.dledbackend.infrastructure.security.dto.LogoutResponse;
+import br.com.dled.dledbackend.modules.users.application.dto.UserDto;
 import br.com.dled.dledbackend.modules.users.application.mapper.IUserMapper;
 import br.com.dled.dledbackend.modules.users.domain.UserAccount;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,6 +67,18 @@ public class AuthController {
     public ResponseEntity<LogoutResponse> logout(HttpServletResponse response) {
         response.addCookie(buildCookie("", true));
         return ResponseEntity.ok(new LogoutResponse("Logout successful"));
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Return authenticated user", description = "Returns the user associated with the current JWT cookie or bearer token.")
+    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirement(name = "authCookie")
+    @ApiResponse(responseCode = "200", description = "Authenticated user returned",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.class)))
+    @ApiResponse(responseCode = "401", description = "Missing or invalid authentication",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+    public ResponseEntity<UserDto> me(@AuthenticationPrincipal UserAccount user) {
+        return ResponseEntity.ok(userMapper.fromOut(user));
     }
 
     private Cookie buildCookie(String value, boolean clear) {

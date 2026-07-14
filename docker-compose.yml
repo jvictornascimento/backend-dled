@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dled-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dled
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - dled-db
+    volumes:
+      - dled-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dled"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dled-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dled
+      DBNAME: dled
+      DBUSERNAME: postgres
+      DBPASSWORD: postgres
+      API_KEY_HEADER_NAME: X-API-Key
+      API_KEY_VALUE: test-api-key
+      JWT_SECRET: "0123456789012345678901234567890123456789012345678901234567890123"
+      JWT_EXPIRATION_MINUTES: "120"
+      JWT_COOKIE_NAME: AUTH_TOKEN
+      JWT_COOKIE_SECURE: "false"
+      CLOUDINARY_CLOUD_NAME: ""
+      CLOUDINARY_API_KEY: ""
+      CLOUDINARY_API_SECRET: ""
+      CLOUDINARY_FOLDER: dled/products
+    ports:
+      - "8081:8081"
+    networks:
+      - dled-public
+      - dled-db
+
+volumes:
+  dled-postgres-data:
+
+networks:
+  dled-public:
+  dled-db:
+    internal: true

@@ -8,6 +8,8 @@ import br.com.dled.dledbackend.modules.orders.application.dto.OrderCompanyDto;
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderDto;
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderProductDto;
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderUpsertDto;
+import br.com.dled.dledbackend.modules.orders.application.dto.PrintLabelProductDTO;
+import br.com.dled.dledbackend.modules.orders.application.dto.PrintLabelProductRequestDto;
 import br.com.dled.dledbackend.modules.orders.application.exception.OrderNotFoundException;
 import br.com.dled.dledbackend.modules.orders.application.mapper.IOrderMapper;
 import br.com.dled.dledbackend.modules.orders.domain.Order;
@@ -139,6 +141,52 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void shouldBuildProductLabel() {
+        Order order = createOrder(1L);
+
+        when(repository.findByIdWithCompanyAndProducts(1L)).thenReturn(Optional.of(order));
+
+        PrintLabelProductDTO result = service.buildProductLabel(new PrintLabelProductRequestDto(1L, "L-001", 10L));
+
+        assertEquals(1L, result.orderId());
+        assertEquals("L-001", result.lot());
+        assertEquals(10L, result.productId());
+        assertEquals("Driver 24W", result.name());
+        assertEquals("Product description", result.descricao());
+        assertEquals(100, result.codigoRusso());
+        assertEquals(200, result.codigoMali());
+        assertEquals(7891234567890L, result.gtin());
+        assertEquals(199.9, result.price());
+        assertEquals(ProductStatus.AVAILABLE, result.status());
+        assertEquals(24, result.watts());
+        assertEquals(12, result.volt());
+        assertEquals(5, result.amper());
+        assertEquals(65, result.ip());
+        assertEquals("3000K", result.temperaturaDeCor());
+        assertEquals("5m", result.dimensao());
+    }
+
+    @Test
+    void shouldThrowWhenBuildingProductLabelForDifferentLot() {
+        Order order = createOrder(1L);
+
+        when(repository.findByIdWithCompanyAndProducts(1L)).thenReturn(Optional.of(order));
+
+        assertThrows(OrderNotFoundException.class, () ->
+                service.buildProductLabel(new PrintLabelProductRequestDto(1L, "OTHER-LOT", 10L)));
+    }
+
+    @Test
+    void shouldThrowWhenBuildingProductLabelForProductOutsideOrder() {
+        Order order = createOrder(1L);
+
+        when(repository.findByIdWithCompanyAndProducts(1L)).thenReturn(Optional.of(order));
+
+        assertThrows(ProductNotFoundException.class, () ->
+                service.buildProductLabel(new PrintLabelProductRequestDto(1L, "L-001", 999L)));
+    }
+
+    @Test
     void shouldThrowWhenOrderDoesNotExist() {
         when(repository.findByIdWithCompanyAndProducts(1L)).thenReturn(Optional.empty());
 
@@ -191,6 +239,17 @@ class OrderServiceImplTest {
         Product product = new Product();
         product.setId(id);
         product.setName(name);
+        product.setCodigoRusso(100);
+        product.setCodigoMali(200);
+        product.setDescricao("Product description");
+        product.setIp(65);
+        product.setAmper(5);
+        product.setWatts(24);
+        product.setGtin(7891234567890L);
+        product.setVolt(12);
+        product.setPrice(199.9);
+        product.setTemperaturaDeCor("3000K");
+        product.setDimensao("5m");
         product.setStatus(ProductStatus.AVAILABLE);
         return product;
     }

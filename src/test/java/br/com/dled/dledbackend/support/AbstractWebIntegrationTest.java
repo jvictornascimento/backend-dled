@@ -11,6 +11,9 @@ import br.com.dled.dledbackend.modules.products.application.storage.ProductImage
 import br.com.dled.dledbackend.modules.products.domain.Product;
 import br.com.dled.dledbackend.modules.products.domain.ProductStatus;
 import br.com.dled.dledbackend.modules.products.infrastructure.ProductRespository;
+import br.com.dled.dledbackend.modules.printtemplates.domain.PrintTemplate;
+import br.com.dled.dledbackend.modules.printtemplates.domain.PrintTemplateUsageContext;
+import br.com.dled.dledbackend.modules.printtemplates.infrastructure.PrintTemplateRepository;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +61,9 @@ public abstract class AbstractWebIntegrationTest {
     protected OrderRepository orderRepository;
 
     @Autowired
+    protected PrintTemplateRepository printTemplateRepository;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
@@ -68,6 +74,8 @@ public abstract class AbstractWebIntegrationTest {
         jdbcTemplate.execute("DELETE FROM product_category");
         jdbcTemplate.execute("DELETE FROM product");
         jdbcTemplate.execute("ALTER TABLE product ALTER COLUMN id RESTART WITH 1");
+        jdbcTemplate.execute("DELETE FROM print_template");
+        jdbcTemplate.execute("ALTER TABLE print_template ALTER COLUMN id RESTART WITH 1");
         jdbcTemplate.execute("DELETE FROM company");
         jdbcTemplate.execute("ALTER TABLE company ALTER COLUMN id RESTART WITH 1");
         jdbcTemplate.execute("ALTER TABLE orders ALTER COLUMN id RESTART WITH 1");
@@ -169,6 +177,20 @@ public abstract class AbstractWebIntegrationTest {
         order.setCompany(company);
         order.setProducts(new LinkedHashSet<>(List.of(products)));
         return orderRepository.save(order);
+    }
+
+    protected PrintTemplate savePrintTemplate(String name, PrintTemplateUsageContext usageContext, boolean active) {
+        PrintTemplate printTemplate = new PrintTemplate();
+        printTemplate.setName(name);
+        printTemplate.setDescription(name + " description");
+        printTemplate.setUsageContext(usageContext);
+        printTemplate.setActive(active);
+        printTemplate.setTemplateJson("""
+                {"basePdf":{"width":25,"height":33},"schemas":[[]]}
+                """);
+        printTemplate.setWidthMm(25.0);
+        printTemplate.setHeightMm(33.0);
+        return printTemplateRepository.save(printTemplate);
     }
 
     @TestConfiguration

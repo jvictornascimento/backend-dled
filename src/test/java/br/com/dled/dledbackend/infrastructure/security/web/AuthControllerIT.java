@@ -41,6 +41,23 @@ class AuthControllerIT extends AbstractWebIntegrationTest {
     }
 
     @Test
+    void shouldReturnAuthenticatedUser() throws Exception {
+        mockMvc.perform(get("/v1/auth/me")
+                        .cookie(authCookie()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("user"))
+                .andExpect(jsonPath("$.email").value("user@dled.local"))
+                .andExpect(jsonPath("$.role").value("USER"));
+    }
+
+    @Test
+    void shouldReturnUnauthorizedWhenCurrentUserIsNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/v1/auth/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Unauthorized"));
+    }
+
+    @Test
     void shouldAllowAuthenticatedAccessUsingBearerToken() throws Exception {
         String token = mockMvc.perform(post("/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

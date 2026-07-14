@@ -4,6 +4,8 @@ import br.com.dled.dledbackend.core.exceptions.StandardError;
 import br.com.dled.dledbackend.modules.orders.application.IOrderService;
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderDto;
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderUpsertDto;
+import br.com.dled.dledbackend.modules.orders.application.dto.PrintLabelProductDTO;
+import br.com.dled.dledbackend.modules.orders.application.dto.PrintLabelProductRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -88,5 +90,15 @@ public class OrderController {
             @PathVariable Long orderId) {
         service.delete(orderId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/labels/products")
+    @Operation(summary = "Build product label data", description = "Loads non-operational product data for label printing using order ID, lot and product ID.")
+    @ApiResponse(responseCode = "200", description = "Product label data returned",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = PrintLabelProductDTO.class)))
+    @ApiResponse(responseCode = "404", description = "Order, lot or product not found",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
+    public ResponseEntity<PrintLabelProductDTO> buildProductLabel(@Valid @RequestBody PrintLabelProductRequestDto input) {
+        return ResponseEntity.ok(service.buildProductLabel(input));
     }
 }

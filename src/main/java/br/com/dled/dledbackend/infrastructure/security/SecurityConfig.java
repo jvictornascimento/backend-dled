@@ -49,7 +49,12 @@ public class SecurityConfig {
                                 apiPrefix + "/products/*",
                                 apiPrefix + "/categories/root",
                                 apiPrefix + "/categories/tree",
-                                apiPrefix + "/categories/*"
+                                apiPrefix + "/categories/*",
+                                apiPrefix + "/wood/products",
+                                apiPrefix + "/wood/products/*",
+                                apiPrefix + "/wood/categories",
+                                apiPrefix + "/wood/categories/root",
+                                apiPrefix + "/wood/categories/*"
                         ).permitAll()
                         .requestMatchers(apiPrefix + "/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/error").permitAll()

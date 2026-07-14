@@ -2,6 +2,8 @@ package br.com.dled.dledbackend.modules.orders.application;
 
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderDto;
 import br.com.dled.dledbackend.modules.orders.application.dto.OrderUpsertDto;
+import br.com.dled.dledbackend.modules.orders.application.dto.PrintLabelProductDTO;
+import br.com.dled.dledbackend.modules.orders.application.dto.PrintLabelProductRequestDto;
 
 import java.util.List;
 
@@ -11,4 +13,5 @@ public interface IOrderService {
     OrderDto create(OrderUpsertDto input);
     OrderDto update(Long orderId, OrderUpsertDto input);
     void delete(Long orderId);
+    PrintLabelProductDTO buildProductLabel(PrintLabelProductRequestDto input);
 }
