@@ -144,9 +144,7 @@ public class WoodProductServiceImpl implements IWoodProductService {
         product.setDescription(input.description());
         product.setImgUrl(input.imgUrl());
         product.setCaixa(input.caixa());
-        product.setWoodType(input.woodType());
-        product.setFinish(input.finish());
-        product.setThicknessMm(input.thicknessMm());
+        product.setPrice(input.price());
         product.setWidthMm(input.widthMm());
         product.setHeightMm(input.heightMm());
         product.setLengthMm(input.lengthMm());
@@ -156,12 +154,9 @@ public class WoodProductServiceImpl implements IWoodProductService {
     }
 
     private void applyVariationInput(WoodProductVariation variation, WoodProductVariationUpsertDto input) {
-        variation.setDescription(input.description());
         variation.setColor(input.color());
         variation.setSku(input.sku());
         variation.setEan(input.ean());
-        variation.setSize(input.size());
-        variation.setPrice(input.price());
         variation.setListImgs(input.listImgs() == null ? new ArrayList<>() : new ArrayList<>(input.listImgs()));
         variation.setActive(input.active());
     }
@@ -196,9 +191,7 @@ public class WoodProductServiceImpl implements IWoodProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getCaixa(),
-                product.getWoodType(),
-                product.getFinish(),
-                product.getThicknessMm(),
+                product.getPrice(),
                 product.getWidthMm(),
                 product.getHeightMm(),
                 product.getLengthMm(),
@@ -224,13 +217,10 @@ public class WoodProductServiceImpl implements IWoodProductService {
     private WoodProductVariationDto toVariationDto(WoodProductVariation variation) {
         return new WoodProductVariationDto(
                 variation.getId(),
-                variation.getDescription(),
                 variation.getColor(),
                 variation.getSku(),
                 variation.getEan(),
                 List.copyOf(variation.getListImgs()),
-                variation.getSize(),
-                variation.getPrice(),
                 variation.getLabelImageUrl(),
                 variation.getLabelImagePublicId(),
                 variation.isActive(),

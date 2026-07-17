@@ -8,8 +8,6 @@ import java.util.List;
 public record WoodProductVariationDto(
         @Schema(description = "Variation ID", example = "1")
         Long id,
-        @Schema(description = "Variation description")
-        String description,
         @Schema(description = "Variation color", example = "Natural")
         String color,
         @Schema(description = "SKU", example = "123456")
@@ -18,10 +16,6 @@ public record WoodProductVariationDto(
         Long ean,
         @Schema(description = "Image URLs for this variation")
         List<String> listImgs,
-        @Schema(description = "Variation size", example = "30x40")
-        String size,
-        @Schema(description = "Variation price", example = "49.90")
-        Double price,
         @Schema(description = "Custom label image URL stored in Cloudinary")
         String labelImageUrl,
         @Schema(description = "Cloudinary public ID for custom label image")

@@ -34,14 +34,9 @@ public class WoodProductVariation {
     @JoinColumn(name = "wood_product_id", nullable = false)
     private WoodProduct product;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
     private String color;
     private Long sku;
     private Long ean;
-    @Column(name = "variation_size")
-    private String size;
-    private Double price;
     private String labelImageUrl;
     private String labelImagePublicId;
 
