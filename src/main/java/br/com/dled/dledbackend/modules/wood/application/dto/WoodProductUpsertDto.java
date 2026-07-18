@@ -17,9 +17,8 @@ public record WoodProductUpsertDto(
         String imgUrl,
         @Schema(description = "Packaging code used by employees", example = "CX-PADRAO-02")
         String caixa,
-        String woodType,
-        String finish,
-        Double thicknessMm,
+        @Schema(description = "Product price", example = "49.90")
+        Double price,
         Double widthMm,
         Double heightMm,
         Double lengthMm,
