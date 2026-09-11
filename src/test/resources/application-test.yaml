@@ -9,6 +9,8 @@ security:
     expiration-minutes: 120
     cookie-name: AUTH_TOKEN
     cookie-secure: false
+  initial-admin:
+    enabled: false
 cors:
   origin: http://localhost:8080
 spring:

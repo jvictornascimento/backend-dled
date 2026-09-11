@@ -9,6 +9,14 @@ security:
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
     cookie-name: ${JWT_COOKIE_NAME:AUTH_TOKEN}
     cookie-secure: ${JWT_COOKIE_SECURE:false}
+  initial-admin:
+    enabled: ${INITIAL_ADMIN_ENABLED:true}
+    full-name: ${INITIAL_ADMIN_FULL_NAME:}
+    username: ${INITIAL_ADMIN_USERNAME:}
+    email: ${INITIAL_ADMIN_EMAIL:}
+    phone: ${INITIAL_ADMIN_PHONE:}
+    company-name: ${INITIAL_ADMIN_COMPANY_NAME:}
+    password: ${INITIAL_ADMIN_PASSWORD:}
 cors:
   origin: http://localhost:8080
 management:
