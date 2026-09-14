@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 class CompanyControllerIT extends AbstractWebIntegrationTest {
 
@@ -23,7 +24,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(get("/v1/companies")
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].shortName").value("DLED"))
                 .andExpect(jsonPath("$[0].type").value("OWN"))
@@ -36,7 +37,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("DLED", "DLED Lighting", CompanyType.OWN);
 
         mockMvc.perform(get("/v1/companies/{id}", company.getId())
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(company.getId()))
                 .andExpect(jsonPath("$.shortName").value("DLED"))
@@ -48,7 +49,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenCompanyDoesNotExist() throws Exception {
         mockMvc.perform(get("/v1/companies/{id}", 999L)
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("Company not found"));
@@ -57,7 +58,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnMethodNotAllowedForUnsupportedRequest() throws Exception {
         mockMvc.perform(patch("/v1/companies")
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.status").value(405))
                 .andExpect(jsonPath("$.error").value("Method Not Allowed"));
@@ -67,6 +68,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
     void shouldCreateCompany() throws Exception {
         mockMvc.perform(post("/v1/companies")
                         .cookie(authCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -96,6 +98,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(put("/v1/companies/{id}", company.getId())
                         .cookie(authCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -121,7 +124,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(delete("/v1/companies/{id}", company.getId())
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isNoContent());
 
         assertThat(companyRepository.findById(company.getId())).isEmpty();

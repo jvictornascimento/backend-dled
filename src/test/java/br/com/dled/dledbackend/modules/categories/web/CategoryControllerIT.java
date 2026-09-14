@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 class CategoryControllerIT extends AbstractWebIntegrationTest {
 
@@ -65,7 +66,7 @@ class CategoryControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnMethodNotAllowedForUnsupportedRequest() throws Exception {
         mockMvc.perform(post("/v1/categories/root")
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.status").value(405))
                 .andExpect(jsonPath("$.error").value("Method Not Allowed"));
@@ -77,6 +78,7 @@ class CategoryControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(post("/v1/categories")
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -109,6 +111,7 @@ class CategoryControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(put("/v1/categories/{id}", category.getId())
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -137,7 +140,7 @@ class CategoryControllerIT extends AbstractWebIntegrationTest {
         Category category = saveRootCategory("Categoria Removida");
 
         mockMvc.perform(delete("/v1/categories/{id}", category.getId())
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isNoContent());
 
         assertThat(categoryRepository.findById(category.getId())).isEmpty();

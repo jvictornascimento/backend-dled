@@ -10,13 +10,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 class UserControllerIT extends AbstractWebIntegrationTest {
 
     @Test
     void shouldReturnUsersList() throws Exception {
         mockMvc.perform(get("/v1/users")
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].username").value("user"))
                 .andExpect(jsonPath("$[0].password").doesNotExist());
@@ -25,7 +26,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldForbidRegularUserFromListingUsers() throws Exception {
         mockMvc.perform(get("/v1/users")
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("Forbidden"));
     }
@@ -34,6 +35,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     void shouldCreateUser() throws Exception {
         mockMvc.perform(post("/v1/users")
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -59,6 +61,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     void shouldReturnUserById() throws Exception {
         String response = mockMvc.perform(post("/v1/users")
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -80,7 +83,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
         String id = response.replaceAll(".*\"id\":(\\d+).*", "$1");
 
         mockMvc.perform(get("/v1/users/{id}", id)
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("seller-one"))
                 .andExpect(jsonPath("$.role").value("SELLER"));
@@ -90,6 +93,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     void shouldUpdateUser() throws Exception {
         String response = mockMvc.perform(post("/v1/users")
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -111,6 +115,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(put("/v1/users/{id}", id)
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -135,6 +140,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     void shouldDeleteUser() throws Exception {
         String response = mockMvc.perform(post("/v1/users")
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -155,11 +161,11 @@ class UserControllerIT extends AbstractWebIntegrationTest {
         String id = response.replaceAll(".*\"id\":(\\d+).*", "$1");
 
         mockMvc.perform(delete("/v1/users/{id}", id)
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/v1/users/{id}", id)
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("User not found"));
     }
@@ -168,6 +174,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     void shouldRejectWeakPassword() throws Exception {
         mockMvc.perform(post("/v1/users")
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -190,6 +197,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     void shouldForbidRegularUserFromCreatingUsers() throws Exception {
         mockMvc.perform(post("/v1/users")
                         .cookie(authCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

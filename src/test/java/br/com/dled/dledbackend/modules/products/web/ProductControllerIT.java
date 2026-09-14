@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 class ProductControllerIT extends AbstractWebIntegrationTest {
 
@@ -81,7 +82,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnMethodNotAllowedForUnsupportedRequest() throws Exception {
         mockMvc.perform(patch("/v1/products")
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.status").value(405))
                 .andExpect(jsonPath("$.error").value("Method Not Allowed"));
@@ -93,6 +94,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(post("/v1/products")
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -157,6 +159,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(post("/v1/products")
                         .cookie(authCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -190,6 +193,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(put("/v1/products/{id}", product.getId())
                         .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -254,7 +258,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         Product product = saveProduct("Driver 24W", category);
 
         mockMvc.perform(delete("/v1/products/{id}", product.getId())
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isNoContent());
 
         assertThat(productRepository.findById(product.getId())).isEmpty();
@@ -266,7 +270,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(multipart("/v1/products/{id}/images/main", 999L)
                         .file(file)
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isNotFound());
     }
 
@@ -278,7 +282,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(multipart("/v1/products/{id}/images/main", product.getId())
                         .file(file)
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imgUrl").value("https://cloudinary.test/products/" + product.getId() + "/main/main.png"));
 
@@ -296,7 +300,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
             MockMultipartFile file = new MockMultipartFile("file", "gallery-" + index + ".png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
             mockMvc.perform(multipart("/v1/products/{id}/gallery", product.getId())
                             .file(file)
-                            .cookie(adminAuthCookie()))
+                            .cookie(adminAuthCookie()).with(csrf()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.galleryImages.length()").value(index));
         }
@@ -304,7 +308,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         MockMultipartFile sixth = new MockMultipartFile("file", "gallery-6.png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
         mockMvc.perform(multipart("/v1/products/{id}/gallery", product.getId())
                         .file(sixth)
-                        .cookie(adminAuthCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Bad Request"))
                 .andExpect(jsonPath("$.message").value("Product gallery supports up to 5 images."));

@@ -14,9 +14,11 @@ import br.com.dled.dledbackend.modules.wood.application.exception.WoodCategoryNo
 import br.com.dled.dledbackend.modules.wood.application.exception.WoodProductNotFoundException;
 import br.com.dled.dledbackend.modules.wood.application.exception.WoodVariationNotFoundException;
 import br.com.dled.dledbackend.infrastructure.security.InvalidApiKeyException;
+import br.com.dled.dledbackend.infrastructure.security.web.TooManyLoginAttemptsException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -87,6 +89,18 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(InvalidApiKeyException.class)
     public ResponseEntity<StandardError> invalidApiKey(InvalidApiKeyException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return buildResponse(status, e.getMessage(), request);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<StandardError> invalidCredentials(BadCredentialsException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return buildResponse(status, "Invalid username or password", request);
+    }
+
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<StandardError> tooManyLoginAttempts(TooManyLoginAttemptsException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
         return buildResponse(status, e.getMessage(), request);
     }
 
