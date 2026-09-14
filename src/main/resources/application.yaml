@@ -9,6 +9,7 @@ security:
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
     cookie-name: ${JWT_COOKIE_NAME:AUTH_TOKEN}
     cookie-secure: ${JWT_COOKIE_SECURE:false}
+    cookie-same-site: ${JWT_COOKIE_SAME_SITE:Lax}
   initial-admin:
     enabled: ${INITIAL_ADMIN_ENABLED:true}
     full-name: ${INITIAL_ADMIN_FULL_NAME:}

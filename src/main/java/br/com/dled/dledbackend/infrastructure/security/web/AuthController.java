@@ -15,11 +15,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -38,6 +40,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
+    private final LoginAttemptService loginAttemptService;
     private final IUserMapper userMapper;
 
     @PostMapping("/login")
@@ -47,13 +50,22 @@ public class AuthController {
     @ApiResponse(responseCode = "401", description = "Invalid credentials",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest input, HttpServletResponse response) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(input.username(), input.password())
-        );
+        loginAttemptService.ensureLoginAllowed(input.username());
+
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(input.username(), input.password())
+            );
+        } catch (BadCredentialsException ex) {
+            loginAttemptService.loginFailed(input.username());
+            throw ex;
+        }
 
         UserAccount user = (UserAccount) authentication.getPrincipal();
         String token = jwtService.generateToken(user);
-        response.addCookie(buildCookie(token, false));
+        loginAttemptService.loginSucceeded(input.username());
+        response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(token, false).toString());
 
         return ResponseEntity.ok(new AuthResponse(token, "Bearer", userMapper.fromOut(user)));
     }
@@ -65,7 +77,7 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "Logged out successfully",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = LogoutResponse.class)))
     public ResponseEntity<LogoutResponse> logout(HttpServletResponse response) {
-        response.addCookie(buildCookie("", true));
+        response.addHeader(HttpHeaders.SET_COOKIE, buildCookie("", true).toString());
         return ResponseEntity.ok(new LogoutResponse("Logout successful"));
     }
 
@@ -81,12 +93,13 @@ public class AuthController {
         return ResponseEntity.ok(userMapper.fromOut(user));
     }
 
-    private Cookie buildCookie(String value, boolean clear) {
-        Cookie cookie = new Cookie(jwtProperties.getCookieName(), value);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(jwtProperties.isCookieSecure());
-        cookie.setPath("/");
-        cookie.setMaxAge(clear ? 0 : (int) (jwtProperties.getExpirationMinutes() * 60));
-        return cookie;
+    private ResponseCookie buildCookie(String value, boolean clear) {
+        return ResponseCookie.from(jwtProperties.getCookieName(), value)
+                .httpOnly(true)
+                .secure(jwtProperties.isCookieSecure())
+                .sameSite(jwtProperties.getCookieSameSite())
+                .path("/")
+                .maxAge(clear ? 0 : jwtProperties.getExpirationMinutes() * 60)
+                .build();
     }
 }

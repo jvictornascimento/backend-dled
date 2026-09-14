@@ -9,6 +9,7 @@ security:
     expiration-minutes: 120
     cookie-name: AUTH_TOKEN
     cookie-secure: false
+    cookie-same-site: Lax
   initial-admin:
     enabled: false
 cors:
