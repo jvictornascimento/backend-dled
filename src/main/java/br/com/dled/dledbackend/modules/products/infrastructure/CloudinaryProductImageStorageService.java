@@ -14,11 +14,19 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 @Service
 public class CloudinaryProductImageStorageService implements ProductImageStorageService {
+    private static final long MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
+            MediaType.IMAGE_JPEG_VALUE,
+            MediaType.IMAGE_PNG_VALUE,
+            "image/webp"
+    );
+
     private final CloudinaryProperties properties;
     private final RestClient restClient;
 
@@ -94,6 +102,16 @@ public class CloudinaryProductImageStorageService implements ProductImageStorage
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new ProductImageBadRequestException("Image file is required.");
+        }
+        if (file.getSize() > MAX_IMAGE_BYTES) {
+            throw new ProductImageBadRequestException("Image file must be 5MB or smaller.");
+        }
+        if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
+            throw new ProductImageBadRequestException("Image file must be JPEG, PNG or WebP.");
+        }
+        String filename = Objects.requireNonNullElse(file.getOriginalFilename(), "").toLowerCase();
+        if (!(filename.endsWith(".jpg") || filename.endsWith(".jpeg") || filename.endsWith(".png") || filename.endsWith(".webp"))) {
+            throw new ProductImageBadRequestException("Image file extension must be .jpg, .jpeg, .png or .webp.");
         }
     }
 
