@@ -14,6 +14,11 @@ import br.com.dled.dledbackend.modules.products.infrastructure.ProductRespositor
 import br.com.dled.dledbackend.modules.printtemplates.domain.PrintTemplate;
 import br.com.dled.dledbackend.modules.printtemplates.domain.PrintTemplateUsageContext;
 import br.com.dled.dledbackend.modules.printtemplates.infrastructure.PrintTemplateRepository;
+import br.com.dled.dledbackend.modules.users.domain.UserAccount;
+import br.com.dled.dledbackend.modules.users.domain.UserRole;
+import br.com.dled.dledbackend.modules.users.infrastructure.UserRepository;
+import br.com.dled.dledbackend.modules.wood.domain.WoodCategory;
+import br.com.dled.dledbackend.modules.wood.infrastructure.WoodCategoryRepository;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +70,15 @@ public abstract class AbstractWebIntegrationTest {
     protected PrintTemplateRepository printTemplateRepository;
 
     @Autowired
+    protected UserRepository userRepository;
+
+    @Autowired
+    protected WoodCategoryRepository woodCategoryRepository;
+
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
@@ -74,6 +89,13 @@ public abstract class AbstractWebIntegrationTest {
         jdbcTemplate.execute("DELETE FROM product_category");
         jdbcTemplate.execute("DELETE FROM product");
         jdbcTemplate.execute("ALTER TABLE product ALTER COLUMN id RESTART WITH 1");
+        jdbcTemplate.execute("DELETE FROM wood_variation_images");
+        jdbcTemplate.execute("DELETE FROM wood_product_variation");
+        jdbcTemplate.execute("DELETE FROM wood_product_category");
+        jdbcTemplate.execute("DELETE FROM wood_product");
+        jdbcTemplate.execute("ALTER TABLE wood_product ALTER COLUMN id RESTART WITH 1");
+        jdbcTemplate.execute("DELETE FROM wood_category");
+        jdbcTemplate.execute("ALTER TABLE wood_category ALTER COLUMN id RESTART WITH 1");
         jdbcTemplate.execute("DELETE FROM print_template");
         jdbcTemplate.execute("ALTER TABLE print_template ALTER COLUMN id RESTART WITH 1");
         jdbcTemplate.execute("DELETE FROM company");
@@ -89,6 +111,16 @@ public abstract class AbstractWebIntegrationTest {
 
     protected Cookie adminAuthCookie() throws Exception {
         return authCookie("admin", "123456");
+    }
+
+    protected Cookie employAuthCookie() throws Exception {
+        saveTestUser("employ", "Employ@123", UserRole.EMPLOY);
+        return authCookie("employ", "Employ@123");
+    }
+
+    protected Cookie sellerAuthCookie() throws Exception {
+        saveTestUser("seller", "Seller@123", UserRole.SELLER);
+        return authCookie("seller", "Seller@123");
     }
 
     protected Cookie authCookie(String username, String password) throws Exception {
@@ -195,6 +227,31 @@ public abstract class AbstractWebIntegrationTest {
         printTemplate.setWidthMm(25.0);
         printTemplate.setHeightMm(33.0);
         return printTemplateRepository.save(printTemplate);
+    }
+
+    protected WoodCategory saveWoodRootCategory(String name) {
+        WoodCategory category = new WoodCategory();
+        category.setName(name);
+        category.setImgCategoryUrl(name.toLowerCase() + ".png");
+        category.setActive(true);
+        return woodCategoryRepository.save(category);
+    }
+
+    private void saveTestUser(String username, String password, UserRole role) {
+        if (userRepository.existsByUsernameIgnoreCase(username)) {
+            return;
+        }
+
+        UserAccount user = new UserAccount();
+        user.setFullName(username + " test");
+        user.setUsername(username);
+        user.setEmail(username + "@dled.local");
+        user.setPhone("11999990000");
+        user.setCompanyName("DLED");
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole(role);
+        user.setActive(true);
+        userRepository.saveAndFlush(user);
     }
 
     @TestConfiguration

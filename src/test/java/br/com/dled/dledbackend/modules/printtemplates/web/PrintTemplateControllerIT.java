@@ -125,6 +125,41 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
     }
 
     @Test
+    void shouldAllowEmployToCreatePrintTemplate() throws Exception {
+        mockMvc.perform(post("/v1/print-templates")
+                        .cookie(employAuthCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Etiqueta operacional",
+                                  "usageContext": "ORDER",
+                                  "templateJson": "{\\"basePdf\\":{\\"width\\":25,\\"height\\":33},\\"schemas\\":[[]]}"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Etiqueta operacional"))
+                .andExpect(jsonPath("$.usageContext").value("ORDER"));
+    }
+
+    @Test
+    void shouldForbidRegularUserFromCreatingPrintTemplate() throws Exception {
+        mockMvc.perform(post("/v1/print-templates")
+                        .cookie(authCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Etiqueta bloqueada",
+                                  "usageContext": "ORDER",
+                                  "templateJson": "{\\"basePdf\\":{\\"width\\":25,\\"height\\":33},\\"schemas\\":[[]]}"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    @Test
     void shouldUpdatePrintTemplate() throws Exception {
         PrintTemplate printTemplate = savePrintTemplate("Etiqueta antiga", PrintTemplateUsageContext.PRINTS_MENU, true);
 

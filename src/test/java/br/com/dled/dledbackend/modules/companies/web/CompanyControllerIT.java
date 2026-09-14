@@ -67,7 +67,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldCreateCompany() throws Exception {
         mockMvc.perform(post("/v1/companies")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -97,7 +97,7 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(put("/v1/companies/{id}", company.getId())
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -124,9 +124,43 @@ class CompanyControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(delete("/v1/companies/{id}", company.getId())
-                        .cookie(authCookie()).with(csrf()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isNoContent());
 
         assertThat(companyRepository.findById(company.getId())).isEmpty();
+    }
+
+    @Test
+    void shouldForbidRegularUserFromCreatingCompany() throws Exception {
+        mockMvc.perform(post("/v1/companies")
+                        .cookie(authCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "shortName": "BLOCKED",
+                                  "fullName": "Blocked Company",
+                                  "type": "SUPPLIER"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    @Test
+    void shouldForbidEmployFromCreatingCompany() throws Exception {
+        mockMvc.perform(post("/v1/companies")
+                        .cookie(employAuthCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "shortName": "BLOCKED",
+                                  "fullName": "Blocked Company",
+                                  "type": "SUPPLIER"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
     }
 }
