@@ -13,3 +13,19 @@ SELECT
 WHERE NOT EXISTS (
     SELECT 1 FROM app_user WHERE username = 'user'
 );
+
+INSERT INTO app_user (full_name, username, email, phone, company_name, password, role, active, created_at, updated_at)
+SELECT
+    'Default Admin',
+    'admin',
+    'admin@dled.local',
+    '11999999998',
+    'Default Company',
+    '{noop}123456',
+    'ADMIN',
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+WHERE NOT EXISTS (
+    SELECT 1 FROM app_user WHERE username = 'admin'
+);

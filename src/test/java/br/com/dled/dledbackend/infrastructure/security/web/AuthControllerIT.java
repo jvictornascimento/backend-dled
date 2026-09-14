@@ -81,7 +81,7 @@ class AuthControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldForbidClientRoleFromProtectedRoutes() throws Exception {
         mockMvc.perform(post("/v1/users")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

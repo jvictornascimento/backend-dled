@@ -22,7 +22,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
         savePrintTemplate("Produto tecnico", PrintTemplateUsageContext.PRODUCT, true);
 
         mockMvc.perform(get("/v1/print-templates")
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Etiqueta de mes"))
                 .andExpect(jsonPath("$[0].usageContext").value("PRINTS_MENU"))
@@ -38,7 +38,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
         savePrintTemplate("Produto", PrintTemplateUsageContext.PRODUCT, true);
 
         mockMvc.perform(get("/v1/print-templates/context/{usageContext}", PrintTemplateUsageContext.PRINTS_MENU)
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].name").value("Etiqueta ativa"))
@@ -50,7 +50,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
         PrintTemplate printTemplate = savePrintTemplate("Etiqueta de mes", PrintTemplateUsageContext.MONTH_LABEL, true);
 
         mockMvc.perform(get("/v1/print-templates/{id}", printTemplate.getId())
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(printTemplate.getId()))
                 .andExpect(jsonPath("$.name").value("Etiqueta de mes"))
@@ -65,7 +65,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenPrintTemplateDoesNotExist() throws Exception {
         mockMvc.perform(get("/v1/print-templates/{id}", 999L)
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("Print template not found"));
@@ -74,7 +74,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldCreatePrintTemplate() throws Exception {
         mockMvc.perform(post("/v1/print-templates")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -108,7 +108,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldDefaultActiveToTrueWhenCreatingPrintTemplate() throws Exception {
         mockMvc.perform(post("/v1/print-templates")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -126,7 +126,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
         PrintTemplate printTemplate = savePrintTemplate("Etiqueta antiga", PrintTemplateUsageContext.PRINTS_MENU, true);
 
         mockMvc.perform(put("/v1/print-templates/{id}", printTemplate.getId())
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -159,7 +159,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
         PrintTemplate printTemplate = savePrintTemplate("Etiqueta de mes", PrintTemplateUsageContext.PRINTS_MENU, true);
 
         mockMvc.perform(delete("/v1/print-templates/{id}", printTemplate.getId())
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isNoContent());
 
         assertThat(printTemplateRepository.findById(printTemplate.getId())).isEmpty();
@@ -168,7 +168,7 @@ class PrintTemplateControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldValidateRequiredFieldsWhenCreatingPrintTemplate() throws Exception {
         mockMvc.perform(post("/v1/print-templates")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

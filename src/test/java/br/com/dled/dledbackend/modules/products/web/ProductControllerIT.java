@@ -81,7 +81,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnMethodNotAllowedForUnsupportedRequest() throws Exception {
         mockMvc.perform(patch("/v1/products")
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.status").value(405))
                 .andExpect(jsonPath("$.error").value("Method Not Allowed"));
@@ -92,7 +92,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         Category category = saveRootCategory("Drivers");
 
         mockMvc.perform(post("/v1/products")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -152,13 +152,44 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
     }
 
     @Test
+    void shouldForbidRegularUserFromCreatingProduct() throws Exception {
+        Category category = saveRootCategory("Drivers");
+
+        mockMvc.perform(post("/v1/products")
+                        .cookie(authCookie())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Driver Bloqueado",
+                                  "codigoRusso": 321,
+                                  "codigoMali": 654,
+                                  "categoryIds": [%d],
+                                  "status": "AVAILABLE",
+                                  "ip": 65,
+                                  "amper": 5,
+                                  "watts": 60,
+                                  "gtin": 7891234567000,
+                                  "volt": 24,
+                                  "ledsPorMetro": 120,
+                                  "quantidePorRolo": 5,
+                                  "sessaoDeCorte": 10,
+                                  "espessura": 2,
+                                  "blindada": true,
+                                  "active": true
+                                }
+                                """.formatted(category.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    @Test
     void shouldUpdateProduct() throws Exception {
         Category originalCategory = saveRootCategory("Drivers");
         Category updatedCategory = saveRootCategory("Perfis");
         Product product = saveProduct("Driver 24W", originalCategory);
 
         mockMvc.perform(put("/v1/products/{id}", product.getId())
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -223,7 +254,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         Product product = saveProduct("Driver 24W", category);
 
         mockMvc.perform(delete("/v1/products/{id}", product.getId())
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isNoContent());
 
         assertThat(productRepository.findById(product.getId())).isEmpty();
@@ -235,7 +266,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(multipart("/v1/products/{id}/images/main", 999L)
                         .file(file)
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isNotFound());
     }
 
@@ -247,7 +278,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(multipart("/v1/products/{id}/images/main", product.getId())
                         .file(file)
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imgUrl").value("https://cloudinary.test/products/" + product.getId() + "/main/main.png"));
 
@@ -265,7 +296,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
             MockMultipartFile file = new MockMultipartFile("file", "gallery-" + index + ".png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
             mockMvc.perform(multipart("/v1/products/{id}/gallery", product.getId())
                             .file(file)
-                            .cookie(authCookie()))
+                            .cookie(adminAuthCookie()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.galleryImages.length()").value(index));
         }
@@ -273,7 +304,7 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
         MockMultipartFile sixth = new MockMultipartFile("file", "gallery-6.png", MediaType.IMAGE_PNG_VALUE, "png".getBytes());
         mockMvc.perform(multipart("/v1/products/{id}/gallery", product.getId())
                         .file(sixth)
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Bad Request"))
                 .andExpect(jsonPath("$.message").value("Product gallery supports up to 5 images."));
