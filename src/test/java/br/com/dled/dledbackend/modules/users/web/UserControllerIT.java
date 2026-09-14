@@ -10,22 +10,32 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 class UserControllerIT extends AbstractWebIntegrationTest {
 
     @Test
     void shouldReturnUsersList() throws Exception {
         mockMvc.perform(get("/v1/users")
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].username").value("user"))
                 .andExpect(jsonPath("$[0].password").doesNotExist());
     }
 
     @Test
+    void shouldForbidRegularUserFromListingUsers() throws Exception {
+        mockMvc.perform(get("/v1/users")
+                        .cookie(authCookie()).with(csrf()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    @Test
     void shouldCreateUser() throws Exception {
         mockMvc.perform(post("/v1/users")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -50,7 +60,8 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnUserById() throws Exception {
         String response = mockMvc.perform(post("/v1/users")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -72,7 +83,7 @@ class UserControllerIT extends AbstractWebIntegrationTest {
         String id = response.replaceAll(".*\"id\":(\\d+).*", "$1");
 
         mockMvc.perform(get("/v1/users/{id}", id)
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("seller-one"))
                 .andExpect(jsonPath("$.role").value("SELLER"));
@@ -81,7 +92,8 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldUpdateUser() throws Exception {
         String response = mockMvc.perform(post("/v1/users")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -102,7 +114,8 @@ class UserControllerIT extends AbstractWebIntegrationTest {
         String id = response.replaceAll(".*\"id\":(\\d+).*", "$1");
 
         mockMvc.perform(put("/v1/users/{id}", id)
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -126,7 +139,8 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldDeleteUser() throws Exception {
         String response = mockMvc.perform(post("/v1/users")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -147,11 +161,11 @@ class UserControllerIT extends AbstractWebIntegrationTest {
         String id = response.replaceAll(".*\"id\":(\\d+).*", "$1");
 
         mockMvc.perform(delete("/v1/users/{id}", id)
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/v1/users/{id}", id)
-                        .cookie(authCookie()))
+                        .cookie(adminAuthCookie()).with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("User not found"));
     }
@@ -159,7 +173,8 @@ class UserControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldRejectWeakPassword() throws Exception {
         mockMvc.perform(post("/v1/users")
-                        .cookie(authCookie())
+                        .cookie(adminAuthCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -176,5 +191,27 @@ class UserControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Bad Request"))
                 .andExpect(jsonPath("$.message").value("Password must be 8 to 20 characters long and contain uppercase, lowercase, number and special character."));
+    }
+
+    @Test
+    void shouldForbidRegularUserFromCreatingUsers() throws Exception {
+        mockMvc.perform(post("/v1/users")
+                        .cookie(authCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fullName": "Usuario Bloqueado",
+                                  "username": "blocked-user",
+                                  "email": "blocked-user@dled.com",
+                                  "phone": "11911114444",
+                                  "companyName": "Operacao",
+                                  "password": "Blocked@123",
+                                  "role": "USER",
+                                  "active": true
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
     }
 }

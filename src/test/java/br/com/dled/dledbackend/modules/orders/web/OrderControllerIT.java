@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 class OrderControllerIT extends AbstractWebIntegrationTest {
 
@@ -31,7 +32,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         saveOrder(LocalDate.of(2026, 4, 10), "L-2026-001", company, firstProduct, secondProduct);
 
         mockMvc.perform(get("/v1/orders")
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].lot").value("L-2026-001"))
                 .andExpect(jsonPath("$[0].purchaseDate").value("2026-04-10"))
@@ -47,7 +48,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 9), "L-2026-002", company, product);
 
         mockMvc.perform(get("/v1/orders/{id}", order.getId())
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(order.getId()))
                 .andExpect(jsonPath("$.lot").value("L-2026-002"))
@@ -60,7 +61,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenOrderDoesNotExist() throws Exception {
         mockMvc.perform(get("/v1/orders/{id}", 999L)
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("Order not found"));
@@ -69,7 +70,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
     @Test
     void shouldReturnMethodNotAllowedForUnsupportedRequest() throws Exception {
         mockMvc.perform(patch("/v1/orders")
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.status").value(405))
                 .andExpect(jsonPath("$.error").value("Method Not Allowed"));
@@ -84,6 +85,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(post("/v1/orders")
                         .cookie(authCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -121,6 +123,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(put("/v1/orders/{id}", order.getId())
                         .cookie(authCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -153,7 +156,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 10), "L-2026-006", company, product);
 
         mockMvc.perform(delete("/v1/orders/{id}", order.getId())
-                        .cookie(authCookie()))
+                        .cookie(authCookie()).with(csrf()))
                 .andExpect(status().isNoContent());
 
         assertThat(orderRepository.findById(order.getId())).isEmpty();
@@ -168,6 +171,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(post("/v1/orders/labels/products")
                         .cookie(authCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -205,6 +209,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
 
         mockMvc.perform(post("/v1/orders/labels/products")
                         .cookie(authCookie())
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

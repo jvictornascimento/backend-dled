@@ -9,8 +9,17 @@ security:
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
     cookie-name: ${JWT_COOKIE_NAME:AUTH_TOKEN}
     cookie-secure: ${JWT_COOKIE_SECURE:false}
+    cookie-same-site: ${JWT_COOKIE_SAME_SITE:Lax}
+  initial-admin:
+    enabled: ${INITIAL_ADMIN_ENABLED:true}
+    full-name: ${INITIAL_ADMIN_FULL_NAME:}
+    username: ${INITIAL_ADMIN_USERNAME:}
+    email: ${INITIAL_ADMIN_EMAIL:}
+    phone: ${INITIAL_ADMIN_PHONE:}
+    company-name: ${INITIAL_ADMIN_COMPANY_NAME:}
+    password: ${INITIAL_ADMIN_PASSWORD:}
 cors:
-  origin: http://localhost:8080
+  origin: ${CORS_ORIGIN:http://localhost:8080}
 management:
   endpoints:
     web:
@@ -27,16 +36,22 @@ spring:
     driver-class-name: org.postgresql.Driver
   sql:
     init:
-      mode: always
+      mode: never
+  servlet:
+    multipart:
+      max-file-size: ${MAX_UPLOAD_FILE_SIZE:5MB}
+      max-request-size: ${MAX_UPLOAD_REQUEST_SIZE:6MB}
 
   jpa:
-    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 server:
   port: 8081
 springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:true}
   swagger-ui:
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}
     path: /swagger-ui.html
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}

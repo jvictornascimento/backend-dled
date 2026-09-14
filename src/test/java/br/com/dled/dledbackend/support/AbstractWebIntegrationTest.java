@@ -87,6 +87,10 @@ public abstract class AbstractWebIntegrationTest {
         return authCookie("user", "123456");
     }
 
+    protected Cookie adminAuthCookie() throws Exception {
+        return authCookie("admin", "123456");
+    }
+
     protected Cookie authCookie(String username, String password) throws Exception {
         var response = mockMvc.perform(post("/v1/auth/login")
                         .contentType(APPLICATION_JSON)

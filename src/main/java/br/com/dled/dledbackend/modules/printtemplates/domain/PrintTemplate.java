@@ -39,7 +39,7 @@ public class PrintTemplate {
 
     @Lob
     @NotBlank
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String templateJson;
 
     private Double widthMm;

@@ -9,6 +9,9 @@ security:
     expiration-minutes: 120
     cookie-name: AUTH_TOKEN
     cookie-secure: false
+    cookie-same-site: Lax
+  initial-admin:
+    enabled: false
 cors:
   origin: http://localhost:8080
 spring:
@@ -20,6 +23,8 @@ spring:
   sql:
     init:
       mode: always
+  flyway:
+    enabled: false
   jpa:
     defer-datasource-initialization: true
     hibernate:
