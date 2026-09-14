@@ -1,0 +1,32 @@
+security:
+  api-key:
+    value: ${API_KEY_VALUE}
+  jwt:
+    secret: ${JWT_SECRET}
+    cookie-secure: true
+  initial-admin:
+    enabled: ${INITIAL_ADMIN_ENABLED:false}
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${DBUSERNAME}
+    password: ${DBPASSWORD}
+  jpa:
+    open-in-view: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}

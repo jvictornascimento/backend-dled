@@ -4,8 +4,10 @@ import br.com.dled.dledbackend.infrastructure.security.InvalidApiKeyException;
 import br.com.dled.dledbackend.modules.categories.application.exception.CategoryNotFoundException;
 import br.com.dled.dledbackend.modules.products.application.exception.ProductNotFoundException;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -69,6 +71,20 @@ class ControllerExceptionHandlerTest {
         assertEquals(401, response.status());
         assertEquals("Unauthorized", response.error());
         assertEquals("Invalid or missing API key", response.message());
+    }
+
+    @Test
+    void shouldHandleMissingStaticResourceAsNotFound() {
+        MockHttpServletRequest request = request("/swagger-ui.html");
+
+        StandardError response = handler.resourceNotFound(
+                new NoResourceFoundException(HttpMethod.GET, "/swagger-ui.html", "No static resource"),
+                request
+        ).getBody();
+
+        assertEquals(404, response.status());
+        assertEquals("Not Found", response.error());
+        assertEquals("Resource not found", response.message());
     }
 
     private MockHttpServletRequest request(String uri) {

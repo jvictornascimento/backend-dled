@@ -1,5 +1,35 @@
 # DLED Backend
 
+## Production environment
+
+The Docker Compose setup uses the `prod` Spring profile and fails fast when required secrets are missing.
+
+Required variables:
+
+```env
+DBNAME=dled
+DBUSERNAME=dled_app
+DBPASSWORD=change-this-password
+API_KEY_VALUE=change-this-api-key
+JWT_SECRET=change-this-to-a-long-random-secret-with-at-least-64-characters
+CORS_ORIGIN=https://your-frontend-domain.com
+CLOUDINARY_CLOUD_NAME=your-cloud
+CLOUDINARY_API_KEY=your-key
+CLOUDINARY_API_SECRET=your-secret
+```
+
+Optional variables:
+
+```env
+JWT_EXPIRATION_MINUTES=60
+JWT_COOKIE_SAME_SITE=Lax
+CLOUDINARY_FOLDER=dled/products
+MAX_UPLOAD_FILE_SIZE=5MB
+MAX_UPLOAD_REQUEST_SIZE=6MB
+```
+
+Production disables Swagger by default, exposes only `/actuator/health`, forces secure JWT cookies and uses database credentials from the environment. Do not deploy with test secrets or default database passwords.
+
 ## Initial admin
 
 The application can bootstrap the first administrator user during startup. This is intended for the first production deploy, before any admin account exists.

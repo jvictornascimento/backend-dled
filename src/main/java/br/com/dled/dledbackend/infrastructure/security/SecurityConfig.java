@@ -11,12 +11,12 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @RequiredArgsConstructor
@@ -33,7 +33,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers(apiPrefix + "/auth/login"))
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(configurer -> configurer
@@ -42,6 +44,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(apiPrefix + "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET,
@@ -56,7 +59,32 @@ public class SecurityConfig {
                                 apiPrefix + "/wood/categories/root",
                                 apiPrefix + "/wood/categories/*"
                         ).permitAll()
-                        .requestMatchers(apiPrefix + "/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(apiPrefix + "/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,
+                                apiPrefix + "/products/**",
+                                apiPrefix + "/categories/**",
+                                apiPrefix + "/wood/products/**",
+                                apiPrefix + "/wood/categories/**",
+                                apiPrefix + "/print-templates/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,
+                                apiPrefix + "/products/**",
+                                apiPrefix + "/categories/**",
+                                apiPrefix + "/wood/products/**",
+                                apiPrefix + "/wood/categories/**",
+                                apiPrefix + "/print-templates/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,
+                                apiPrefix + "/products/**",
+                                apiPrefix + "/categories/**",
+                                apiPrefix + "/wood/products/**",
+                                apiPrefix + "/wood/categories/**",
+                                apiPrefix + "/print-templates/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(apiPrefix + "/companies/**").hasAnyRole("ADMIN", "USER", "EMPLOY")
+                        .requestMatchers(apiPrefix + "/orders/**").hasAnyRole("ADMIN", "USER", "EMPLOY", "SELLER")
+                        .requestMatchers(apiPrefix + "/print-templates/**").hasAnyRole("ADMIN", "USER", "EMPLOY", "SELLER")
+                        .requestMatchers(apiPrefix + "/**").hasAnyRole("ADMIN", "USER", "EMPLOY", "SELLER")
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated());
 
