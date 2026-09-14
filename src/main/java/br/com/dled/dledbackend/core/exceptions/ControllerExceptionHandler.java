@@ -24,6 +24,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 
@@ -42,6 +43,12 @@ public class ControllerExceptionHandler {
     public ResponseEntity<StandardError> methodNotAllowed(HttpRequestMethodNotSupportedException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.METHOD_NOT_ALLOWED;
         return buildResponse(status, GENERIC_METHOD_NOT_ALLOW.params(request.getMethod()).getMassage(), request);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<StandardError> resourceNotFound(NoResourceFoundException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return buildResponse(status, "Resource not found", request);
     }
 
     @ExceptionHandler(CategoryNotFoundException.class)
