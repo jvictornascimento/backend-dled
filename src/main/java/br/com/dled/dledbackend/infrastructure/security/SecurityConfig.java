@@ -56,7 +56,32 @@ public class SecurityConfig {
                                 apiPrefix + "/wood/categories/root",
                                 apiPrefix + "/wood/categories/*"
                         ).permitAll()
-                        .requestMatchers(apiPrefix + "/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(apiPrefix + "/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,
+                                apiPrefix + "/products/**",
+                                apiPrefix + "/categories/**",
+                                apiPrefix + "/wood/products/**",
+                                apiPrefix + "/wood/categories/**",
+                                apiPrefix + "/print-templates/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,
+                                apiPrefix + "/products/**",
+                                apiPrefix + "/categories/**",
+                                apiPrefix + "/wood/products/**",
+                                apiPrefix + "/wood/categories/**",
+                                apiPrefix + "/print-templates/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,
+                                apiPrefix + "/products/**",
+                                apiPrefix + "/categories/**",
+                                apiPrefix + "/wood/products/**",
+                                apiPrefix + "/wood/categories/**",
+                                apiPrefix + "/print-templates/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(apiPrefix + "/companies/**").hasAnyRole("ADMIN", "USER", "EMPLOY")
+                        .requestMatchers(apiPrefix + "/orders/**").hasAnyRole("ADMIN", "USER", "EMPLOY", "SELLER")
+                        .requestMatchers(apiPrefix + "/print-templates/**").hasAnyRole("ADMIN", "USER", "EMPLOY", "SELLER")
+                        .requestMatchers(apiPrefix + "/**").hasAnyRole("ADMIN", "USER", "EMPLOY", "SELLER")
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated());
 
