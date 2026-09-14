@@ -23,9 +23,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping(apiPrefix + "/**")
-                .allowedOriginPatterns(corsOrigin)
-                .allowedMethods("*")
-                .allowedHeaders("*")
+                .allowedOrigins(corsOrigin.split(","))
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("Authorization", "Content-Type", "X-API-Key", "X-XSRF-TOKEN")
                 .allowCredentials(true);
     }
 
@@ -37,7 +37,12 @@ public class WebConfig implements WebMvcConfigurer {
                         apiPrefix + "/products/*",
                         apiPrefix + "/categories/root",
                         apiPrefix + "/categories/tree",
-                        apiPrefix + "/categories/*"
+                        apiPrefix + "/categories/*",
+                        apiPrefix + "/wood/products",
+                        apiPrefix + "/wood/products/*",
+                        apiPrefix + "/wood/categories",
+                        apiPrefix + "/wood/categories/root",
+                        apiPrefix + "/wood/categories/*"
                 );
     }
 

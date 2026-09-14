@@ -4,15 +4,15 @@ services:
     container_name: dled-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: dled
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${DBNAME:?Set DBNAME before starting the database}
+      POSTGRES_USER: ${DBUSERNAME:?Set DBUSERNAME before starting the database}
+      POSTGRES_PASSWORD: ${DBPASSWORD:?Set DBPASSWORD before starting the database}
     networks:
       - dled-db
     volumes:
       - dled-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d dled"]
+      test: ["CMD-SHELL", "pg_isready -U ${DBUSERNAME:?Set DBUSERNAME before starting the database} -d ${DBNAME:?Set DBNAME before starting the database}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,32 +27,46 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dled
-      DBNAME: dled
-      DBUSERNAME: postgres
-      DBPASSWORD: postgres
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DBNAME:?Set DBNAME before starting the app}
+      DBNAME: ${DBNAME:?Set DBNAME before starting the app}
+      DBUSERNAME: ${DBUSERNAME:?Set DBUSERNAME before starting the app}
+      DBPASSWORD: ${DBPASSWORD:?Set DBPASSWORD before starting the app}
       API_KEY_HEADER_NAME: X-API-Key
-      API_KEY_VALUE: test-api-key
-      JWT_SECRET: "0123456789012345678901234567890123456789012345678901234567890123"
-      JWT_EXPIRATION_MINUTES: "120"
+      API_KEY_VALUE: ${API_KEY_VALUE:?Set API_KEY_VALUE before starting the app}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET before starting the app}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-60}
       JWT_COOKIE_NAME: AUTH_TOKEN
-      JWT_COOKIE_SECURE: "false"
-      INITIAL_ADMIN_ENABLED: ${INITIAL_ADMIN_ENABLED:-true}
+      JWT_COOKIE_SECURE: "true"
+      JWT_COOKIE_SAME_SITE: ${JWT_COOKIE_SAME_SITE:-Lax}
+      INITIAL_ADMIN_ENABLED: ${INITIAL_ADMIN_ENABLED:-false}
       INITIAL_ADMIN_FULL_NAME: ${INITIAL_ADMIN_FULL_NAME:?Set INITIAL_ADMIN_FULL_NAME before starting the app}
       INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:?Set INITIAL_ADMIN_USERNAME before starting the app}
       INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:?Set INITIAL_ADMIN_EMAIL before starting the app}
       INITIAL_ADMIN_PHONE: ${INITIAL_ADMIN_PHONE:?Set INITIAL_ADMIN_PHONE before starting the app}
       INITIAL_ADMIN_COMPANY_NAME: ${INITIAL_ADMIN_COMPANY_NAME:?Set INITIAL_ADMIN_COMPANY_NAME before starting the app}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:?Set INITIAL_ADMIN_PASSWORD before starting the app}
-      CLOUDINARY_CLOUD_NAME: ""
-      CLOUDINARY_API_KEY: ""
-      CLOUDINARY_API_SECRET: ""
-      CLOUDINARY_FOLDER: dled/products
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:?Set CLOUDINARY_CLOUD_NAME before starting the app}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:?Set CLOUDINARY_API_KEY before starting the app}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:?Set CLOUDINARY_API_SECRET before starting the app}
+      CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-dled/products}
+      CORS_ORIGIN: ${CORS_ORIGIN:?Set CORS_ORIGIN before starting the app}
+      MAX_UPLOAD_FILE_SIZE: ${MAX_UPLOAD_FILE_SIZE:-5MB}
+      MAX_UPLOAD_REQUEST_SIZE: ${MAX_UPLOAD_REQUEST_SIZE:-6MB}
     ports:
       - "8081:8081"
     networks:
       - dled-public
       - dled-db
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
 volumes:
   dled-postgres-data:
