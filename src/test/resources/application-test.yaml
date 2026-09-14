@@ -12,6 +12,11 @@ security:
     cookie-same-site: Lax
   initial-admin:
     enabled: false
+  login-rate-limit:
+    store: memory
+    max-failed-attempts: 5
+    block-minutes: 15
+    failure-window-minutes: 15
 cors:
   origin: http://localhost:8080
 spring:
