@@ -186,6 +186,70 @@ class ProductControllerIT extends AbstractWebIntegrationTest {
     }
 
     @Test
+    void shouldAllowEmployToCreateProduct() throws Exception {
+        Category category = saveRootCategory("Drivers");
+
+        mockMvc.perform(post("/v1/products")
+                        .cookie(employAuthCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Driver Operacional",
+                                  "codigoRusso": 321,
+                                  "codigoMali": 654,
+                                  "categoryIds": [%d],
+                                  "status": "AVAILABLE",
+                                  "ip": 65,
+                                  "amper": 5,
+                                  "watts": 60,
+                                  "gtin": 7891234567000,
+                                  "volt": 24,
+                                  "ledsPorMetro": 120,
+                                  "quantidePorRolo": 5,
+                                  "sessaoDeCorte": 10,
+                                  "espessura": 2,
+                                  "blindada": true,
+                                  "active": true
+                                }
+                                """.formatted(category.getId())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Driver Operacional"));
+    }
+
+    @Test
+    void shouldForbidSellerFromCreatingProduct() throws Exception {
+        Category category = saveRootCategory("Drivers");
+
+        mockMvc.perform(post("/v1/products")
+                        .cookie(sellerAuthCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Driver Bloqueado",
+                                  "codigoRusso": 321,
+                                  "codigoMali": 654,
+                                  "categoryIds": [%d],
+                                  "status": "AVAILABLE",
+                                  "ip": 65,
+                                  "amper": 5,
+                                  "watts": 60,
+                                  "gtin": 7891234567000,
+                                  "volt": 24,
+                                  "ledsPorMetro": 120,
+                                  "quantidePorRolo": 5,
+                                  "sessaoDeCorte": 10,
+                                  "espessura": 2,
+                                  "blindada": true,
+                                  "active": true
+                                }
+                                """.formatted(category.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    @Test
     void shouldUpdateProduct() throws Exception {
         Category originalCategory = saveRootCategory("Drivers");
         Category updatedCategory = saveRootCategory("Perfis");

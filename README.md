@@ -57,3 +57,17 @@ INITIAL_ADMIN_ENABLED=false
 ```
 
 Do not commit production passwords or create the admin manually with a plain-text password in the database.
+
+## Role permissions
+
+The backend enforces route permissions by role and HTTP method. The current production rule is:
+
+| Role | Permissions |
+| --- | --- |
+| `ADMIN` | Full access to all authenticated endpoints. |
+| `EMPLOY` | Can read operational data and create, update or delete products, wood products, orders and print templates/labels. |
+| `USER` | Can read allowed authenticated operational data, but cannot write administrative resources. |
+| `SELLER` | Can read allowed order and print template data, but cannot write administrative resources. |
+| `CLIENT` | Can authenticate only if future routes explicitly support this role. |
+
+Company, category, wood category and user management remain restricted to `ADMIN`.

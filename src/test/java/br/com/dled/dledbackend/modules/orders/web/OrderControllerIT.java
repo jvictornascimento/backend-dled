@@ -84,7 +84,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
 
         mockMvc.perform(post("/v1/orders")
-                        .cookie(authCookie())
+                        .cookie(employAuthCookie())
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -113,6 +113,50 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
     }
 
     @Test
+    void shouldForbidRegularUserFromCreatingOrder() throws Exception {
+        Category category = saveRootCategory("Drivers");
+        Product product = saveProduct("Driver 24W", category);
+        Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
+
+        mockMvc.perform(post("/v1/orders")
+                        .cookie(authCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "purchaseDate": "2026-04-10",
+                                  "lot": "L-2026-USER",
+                                  "productIds": [%d],
+                                  "companyId": %d
+                                }
+                                """.formatted(product.getId(), company.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    @Test
+    void shouldForbidSellerFromCreatingOrder() throws Exception {
+        Category category = saveRootCategory("Drivers");
+        Product product = saveProduct("Driver 24W", category);
+        Company company = saveCompany("ACME", "ACME Supplies", CompanyType.SUPPLIER);
+
+        mockMvc.perform(post("/v1/orders")
+                        .cookie(sellerAuthCookie())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "purchaseDate": "2026-04-10",
+                                  "lot": "L-2026-SELLER",
+                                  "productIds": [%d],
+                                  "companyId": %d
+                                }
+                                """.formatted(product.getId(), company.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    @Test
     void shouldUpdateOrder() throws Exception {
         Category category = saveRootCategory("Drivers");
         Product originalProduct = saveProduct("Driver 24W", category);
@@ -122,7 +166,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 9), "L-2026-004", originalCompany, originalProduct);
 
         mockMvc.perform(put("/v1/orders/{id}", order.getId())
-                        .cookie(authCookie())
+                        .cookie(employAuthCookie())
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -156,7 +200,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 10), "L-2026-006", company, product);
 
         mockMvc.perform(delete("/v1/orders/{id}", order.getId())
-                        .cookie(authCookie()).with(csrf()))
+                        .cookie(employAuthCookie()).with(csrf()))
                 .andExpect(status().isNoContent());
 
         assertThat(orderRepository.findById(order.getId())).isEmpty();
@@ -170,7 +214,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 10), "L-2026-007", company, product);
 
         mockMvc.perform(post("/v1/orders/labels/products")
-                        .cookie(authCookie())
+                        .cookie(employAuthCookie())
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -208,7 +252,7 @@ class OrderControllerIT extends AbstractWebIntegrationTest {
         Order order = saveOrder(LocalDate.of(2026, 4, 10), "L-2026-008", company, productInOrder);
 
         mockMvc.perform(post("/v1/orders/labels/products")
-                        .cookie(authCookie())
+                        .cookie(employAuthCookie())
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
