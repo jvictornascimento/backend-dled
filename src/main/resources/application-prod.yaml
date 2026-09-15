@@ -1,6 +1,10 @@
 security:
   api-key:
-    value: ${API_KEY_VALUE}
+    keys:
+      - id: ${API_KEY_PRIMARY_ID}
+        hash: ${API_KEY_PRIMARY_HASH}
+      - id: ${API_KEY_SECONDARY_ID:}
+        hash: ${API_KEY_SECONDARY_HASH:}
   jwt:
     secret: ${JWT_SECRET}
     cookie-secure: true
