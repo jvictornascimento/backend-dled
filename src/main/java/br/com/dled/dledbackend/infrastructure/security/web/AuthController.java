@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,8 +50,9 @@ public class AuthController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class)))
     @ApiResponse(responseCode = "401", description = "Invalid credentials",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest input, HttpServletResponse response) {
-        loginAttemptService.ensureLoginAllowed(input.username());
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest input, HttpServletRequest request, HttpServletResponse response) {
+        String clientAddress = request.getRemoteAddr();
+        loginAttemptService.ensureLoginAllowed(input.username(), clientAddress);
 
         Authentication authentication;
         try {
@@ -58,13 +60,13 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(input.username(), input.password())
             );
         } catch (BadCredentialsException ex) {
-            loginAttemptService.loginFailed(input.username());
+            loginAttemptService.loginFailed(input.username(), clientAddress);
             throw ex;
         }
 
         UserAccount user = (UserAccount) authentication.getPrincipal();
         String token = jwtService.generateToken(user);
-        loginAttemptService.loginSucceeded(input.username());
+        loginAttemptService.loginSucceeded(input.username(), clientAddress);
         response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(token, false).toString());
 
         return ResponseEntity.ok(new AuthResponse(token, "Bearer", userMapper.fromOut(user)));

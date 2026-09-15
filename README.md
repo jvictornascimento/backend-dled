@@ -23,12 +23,18 @@ Optional variables:
 ```env
 JWT_EXPIRATION_MINUTES=60
 JWT_COOKIE_SAME_SITE=Lax
+REDIS_PORT=6379
+LOGIN_RATE_LIMIT_MAX_FAILED_ATTEMPTS=5
+LOGIN_RATE_LIMIT_BLOCK_MINUTES=15
+LOGIN_RATE_LIMIT_FAILURE_WINDOW_MINUTES=15
 CLOUDINARY_FOLDER=dled/products
 MAX_UPLOAD_FILE_SIZE=5MB
 MAX_UPLOAD_REQUEST_SIZE=6MB
 ```
 
 Production disables Swagger by default, exposes only `/actuator/health`, forces secure JWT cookies and uses database credentials from the environment. Do not deploy with test secrets or default database passwords.
+
+Production uses Redis to share login rate limit state across application instances. Docker Compose starts Redis automatically and configures the application with `LOGIN_RATE_LIMIT_STORE=redis`.
 
 ## Initial admin
 

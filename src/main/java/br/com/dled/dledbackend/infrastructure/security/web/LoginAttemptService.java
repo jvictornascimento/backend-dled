@@ -1,55 +1,78 @@
 package br.com.dled.dledbackend.infrastructure.security.web;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.HexFormat;
 import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
+@EnableConfigurationProperties(LoginRateLimitProperties.class)
 public class LoginAttemptService {
-    private static final int MAX_FAILED_ATTEMPTS = 5;
-    private static final int BLOCK_MINUTES = 15;
+    private static final String KEY_PREFIX = "login-attempt:";
 
     private final Clock clock;
-    private final Map<String, LoginAttempt> attempts = new ConcurrentHashMap<>();
+    private final LoginAttemptStore store;
+    private final LoginRateLimitProperties properties;
 
-    public void ensureLoginAllowed(String username) {
-        LoginAttempt attempt = attempts.get(normalize(username));
+    public void ensureLoginAllowed(String username, String clientAddress) {
+        String key = buildKey(username, clientAddress);
+        LoginAttempt attempt = store.find(key).orElse(null);
         if (attempt != null && attempt.isBlocked(clock.instant())) {
             throw new TooManyLoginAttemptsException("Too many failed login attempts. Try again later.");
         }
     }
 
-    public void loginFailed(String username) {
-        attempts.compute(normalize(username), (key, current) -> {
-            Instant now = clock.instant();
-            if (current == null || current.blockedUntil() != null && current.blockedUntil().isBefore(now)) {
-                return new LoginAttempt(1, null);
-            }
+    public void loginFailed(String username, String clientAddress) {
+        String key = buildKey(username, clientAddress);
+        Instant now = clock.instant();
+        LoginAttempt current = store.find(key)
+                .filter(attempt -> attempt.blockedUntil() == null || attempt.blockedUntil().isAfter(now))
+                .orElse(null);
 
-            int failedAttempts = current.failedAttempts() + 1;
-            Instant blockedUntil = failedAttempts >= MAX_FAILED_ATTEMPTS ? now.plus(BLOCK_MINUTES, ChronoUnit.MINUTES) : null;
-            return new LoginAttempt(failedAttempts, blockedUntil);
-        });
+        int failedAttempts = current == null ? 1 : current.failedAttempts() + 1;
+        Instant blockedUntil = failedAttempts >= properties.getMaxFailedAttempts()
+                ? now.plus(blockDuration())
+                : null;
+        Duration ttl = blockedUntil == null ? failureWindowDuration() : blockDuration();
+
+        store.save(key, new LoginAttempt(failedAttempts, blockedUntil), ttl);
     }
 
-    public void loginSucceeded(String username) {
-        attempts.remove(normalize(username));
+    public void loginSucceeded(String username, String clientAddress) {
+        store.delete(buildKey(username, clientAddress));
     }
 
-    private String normalize(String username) {
-        return username == null ? "" : username.trim().toLowerCase(Locale.ROOT);
+    private String buildKey(String username, String clientAddress) {
+        return KEY_PREFIX + sha256(normalize(username) + ":" + normalize(clientAddress));
     }
 
-    private record LoginAttempt(int failedAttempts, Instant blockedUntil) {
-        boolean isBlocked(Instant now) {
-            return blockedUntil != null && blockedUntil.isAfter(now);
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String sha256(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("Could not create login rate limit key.", exception);
         }
+    }
+
+    private Duration blockDuration() {
+        return Duration.ofMinutes(properties.getBlockMinutes());
+    }
+
+    private Duration failureWindowDuration() {
+        return Duration.ofMinutes(properties.getFailureWindowMinutes());
     }
 }

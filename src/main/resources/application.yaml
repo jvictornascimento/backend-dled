@@ -18,6 +18,11 @@ security:
     phone: ${INITIAL_ADMIN_PHONE:}
     company-name: ${INITIAL_ADMIN_COMPANY_NAME:}
     password: ${INITIAL_ADMIN_PASSWORD:}
+  login-rate-limit:
+    store: ${LOGIN_RATE_LIMIT_STORE:memory}
+    max-failed-attempts: ${LOGIN_RATE_LIMIT_MAX_FAILED_ATTEMPTS:5}
+    block-minutes: ${LOGIN_RATE_LIMIT_BLOCK_MINUTES:15}
+    failure-window-minutes: ${LOGIN_RATE_LIMIT_FAILURE_WINDOW_MINUTES:15}
 cors:
   origin: ${CORS_ORIGIN:http://localhost:8080}
 management:
@@ -34,6 +39,12 @@ spring:
     username: ${DBUSERNAME:postgres}
     password: ${DBPASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      repositories:
+        enabled: false
   sql:
     init:
       mode: never

@@ -17,6 +17,21 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: dled-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - dled-db
+    volumes:
+      - dled-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
@@ -26,12 +41,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DBNAME:?Set DBNAME before starting the app}
       DBNAME: ${DBNAME:?Set DBNAME before starting the app}
       DBUSERNAME: ${DBUSERNAME:?Set DBUSERNAME before starting the app}
       DBPASSWORD: ${DBPASSWORD:?Set DBPASSWORD before starting the app}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      LOGIN_RATE_LIMIT_STORE: redis
+      LOGIN_RATE_LIMIT_MAX_FAILED_ATTEMPTS: ${LOGIN_RATE_LIMIT_MAX_FAILED_ATTEMPTS:-5}
+      LOGIN_RATE_LIMIT_BLOCK_MINUTES: ${LOGIN_RATE_LIMIT_BLOCK_MINUTES:-15}
+      LOGIN_RATE_LIMIT_FAILURE_WINDOW_MINUTES: ${LOGIN_RATE_LIMIT_FAILURE_WINDOW_MINUTES:-15}
       API_KEY_HEADER_NAME: X-API-Key
       API_KEY_VALUE: ${API_KEY_VALUE:?Set API_KEY_VALUE before starting the app}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET before starting the app}
@@ -70,6 +93,7 @@ services:
 
 volumes:
   dled-postgres-data:
+  dled-redis-data:
 
 networks:
   dled-public:
