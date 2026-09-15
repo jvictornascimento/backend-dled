@@ -87,7 +87,7 @@ jobs:
 
   security-scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -100,8 +100,23 @@ jobs:
           java-version: 21
           cache: maven
 
+      - name: Restore Dependency Check Data
+        uses: actions/cache@v4
+        with:
+          path: target/dependency-check-data
+          key: dependency-check-data-${{ runner.os }}-${{ hashFiles('pom.xml') }}
+          restore-keys: |
+            dependency-check-data-${{ runner.os }}-
+
       - name: Run OWASP Dependency Check
-        run: ./mvnw --batch-mode -Psecurity-scan -DskipTests verify
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          MAVEN_ARGS=(--batch-mode -Psecurity-scan -DskipTests verify)
+          if [ -n "${NVD_API_KEY:-}" ]; then
+            MAVEN_ARGS+=("-DnvdApiKey=${NVD_API_KEY}")
+          fi
+          ./mvnw "${MAVEN_ARGS[@]}"
 
       - name: Upload Dependency Check Report
         if: always()
