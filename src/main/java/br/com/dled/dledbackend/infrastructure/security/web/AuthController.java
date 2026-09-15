@@ -3,7 +3,7 @@ package br.com.dled.dledbackend.infrastructure.security.web;
 import br.com.dled.dledbackend.core.exceptions.StandardError;
 import br.com.dled.dledbackend.infrastructure.security.JwtProperties;
 import br.com.dled.dledbackend.infrastructure.security.JwtService;
-import br.com.dled.dledbackend.infrastructure.security.dto.AuthResponse;
+import br.com.dled.dledbackend.infrastructure.security.dto.LoginResponse;
 import br.com.dled.dledbackend.infrastructure.security.dto.LoginRequest;
 import br.com.dled.dledbackend.infrastructure.security.dto.LogoutResponse;
 import br.com.dled.dledbackend.modules.users.application.dto.UserDto;
@@ -45,12 +45,12 @@ public class AuthController {
     private final IUserMapper userMapper;
 
     @PostMapping("/login")
-    @Operation(summary = "Login", description = "Public endpoint that authenticates a user, returns a JWT and stores it in an HttpOnly cookie.")
+    @Operation(summary = "Login", description = "Public endpoint that authenticates a user and stores the JWT in an HttpOnly cookie.")
     @ApiResponse(responseCode = "200", description = "Authenticated successfully",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class)))
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoginResponse.class)))
     @ApiResponse(responseCode = "401", description = "Invalid credentials",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = StandardError.class)))
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest input, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest input, HttpServletRequest request, HttpServletResponse response) {
         String clientAddress = request.getRemoteAddr();
         loginAttemptService.ensureLoginAllowed(input.username(), clientAddress);
 
@@ -69,7 +69,7 @@ public class AuthController {
         loginAttemptService.loginSucceeded(input.username(), clientAddress);
         response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(token, false).toString());
 
-        return ResponseEntity.ok(new AuthResponse(token, "Bearer", userMapper.fromOut(user)));
+        return ResponseEntity.ok(new LoginResponse(userMapper.fromOut(user)));
     }
 
     @PostMapping("/logout")
