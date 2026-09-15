@@ -51,6 +51,12 @@ printf '%s' 'your-new-api-key' | openssl dgst -sha256 -binary | openssl base64
 
 To rotate without downtime, set `API_KEY_SECONDARY_ID` and `API_KEY_SECONDARY_HASH` with the new key hash, deploy, update clients to the new plain key, then promote it to `API_KEY_PRIMARY_HASH` and clear the secondary variables on a later deploy.
 
+## Web authentication
+
+The web login endpoint stores the JWT only in the `AUTH_TOKEN` HttpOnly cookie. The login response body returns the authenticated user data and does not expose the token.
+
+Browser clients should send authenticated requests with credentials enabled so the cookie is included automatically. Do not store the JWT in `localStorage` or `sessionStorage`.
+
 ## Initial admin
 
 The application can bootstrap the first administrator user during startup. This is intended for the first production deploy, before any admin account exists.
