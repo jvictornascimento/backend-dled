@@ -109,15 +109,15 @@ jobs:
             dependency-check-data-v13-${{ runner.os }}-
 
       - name: Run OWASP Dependency Check
-        env:
-          DLED_NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
+          unset NVD_API_KEY DLED_NVD_API_KEY
+          NVD_API_KEY_VALUE="${{ secrets.NVD_API_KEY }}"
+
           MAVEN_ARGS=(--batch-mode -Psecurity-scan -DskipTests verify)
-          if [ -n "${DLED_NVD_API_KEY:-}" ]; then
-            MAVEN_ARGS+=("-DnvdApiKey=${DLED_NVD_API_KEY}")
-          else
-            unset NVD_API_KEY
+          if [ -n "${NVD_API_KEY_VALUE:-}" ]; then
+            MAVEN_ARGS+=("-DnvdApiKey=${NVD_API_KEY_VALUE}")
           fi
+
           ./mvnw "${MAVEN_ARGS[@]}"
 
       - name: Upload Dependency Check Report
