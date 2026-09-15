@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -99,7 +100,7 @@ public class CloudinaryProductImageStorageService implements ProductImageStorage
         }
     }
 
-    private void validateFile(MultipartFile file) {
+    void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new ProductImageBadRequestException("Image file is required.");
         }
@@ -112,6 +113,33 @@ public class CloudinaryProductImageStorageService implements ProductImageStorage
         String filename = Objects.requireNonNullElse(file.getOriginalFilename(), "").toLowerCase();
         if (!(filename.endsWith(".jpg") || filename.endsWith(".jpeg") || filename.endsWith(".png") || filename.endsWith(".webp"))) {
             throw new ProductImageBadRequestException("Image file extension must be .jpg, .jpeg, .png or .webp.");
+        }
+
+        ImageFormat detectedFormat = detectFormat(file);
+        if (detectedFormat == null) {
+            throw new ProductImageBadRequestException("Image file content must be a valid JPEG, PNG or WebP.");
+        }
+        if (!detectedFormat.contentType().equals(file.getContentType())) {
+            throw new ProductImageBadRequestException("Image file content does not match declared content type.");
+        }
+        if (detectedFormat.extensions().stream().noneMatch(filename::endsWith)) {
+            throw new ProductImageBadRequestException("Image file content does not match file extension.");
+        }
+    }
+
+    private ImageFormat detectFormat(MultipartFile file) {
+        byte[] header = readHeader(file);
+        return Arrays.stream(ImageFormat.values())
+                .filter(format -> format.matches(header))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private byte[] readHeader(MultipartFile file) {
+        try {
+            return file.getInputStream().readNBytes(ImageFormat.MAX_SIGNATURE_BYTES);
+        } catch (Exception exception) {
+            throw new ProductImageBadRequestException("Could not read uploaded image.");
         }
     }
 
@@ -149,5 +177,55 @@ public class CloudinaryProductImageStorageService implements ProductImageStorage
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private enum ImageFormat {
+        JPEG(MediaType.IMAGE_JPEG_VALUE, List.of(".jpg", ".jpeg"), new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF}),
+        PNG(MediaType.IMAGE_PNG_VALUE, List.of(".png"), new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}),
+        WEBP("image/webp", List.of(".webp"), new byte[]{0x52, 0x49, 0x46, 0x46});
+
+        private static final int MAX_SIGNATURE_BYTES = 12;
+
+        private final String contentType;
+        private final List<String> extensions;
+        private final byte[] signature;
+
+        ImageFormat(String contentType, List<String> extensions, byte[] signature) {
+            this.contentType = contentType;
+            this.extensions = extensions;
+            this.signature = signature;
+        }
+
+        private String contentType() {
+            return contentType;
+        }
+
+        private List<String> extensions() {
+            return extensions;
+        }
+
+        private boolean matches(byte[] header) {
+            if (header.length < signature.length) {
+                return false;
+            }
+            if (this == WEBP) {
+                return startsWith(header, signature)
+                        && header.length >= MAX_SIGNATURE_BYTES
+                        && header[8] == 0x57
+                        && header[9] == 0x45
+                        && header[10] == 0x42
+                        && header[11] == 0x50;
+            }
+            return startsWith(header, signature);
+        }
+
+        private boolean startsWith(byte[] header, byte[] expectedSignature) {
+            for (int index = 0; index < expectedSignature.length; index++) {
+                if (header[index] != expectedSignature[index]) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }
