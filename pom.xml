@@ -358,9 +358,12 @@
 						<version>${owasp.dependency-check.version}</version>
 						<configuration>
 							<dataDirectory>${project.build.directory}/dependency-check-data</dataDirectory>
-							<failOnError>false</failOnError>
+							<failOnError>true</failOnError>
 							<skipProvidedScope>true</skipProvidedScope>
-							<failBuildOnCVSS>11</failBuildOnCVSS>
+							<failBuildOnCVSS>7</failBuildOnCVSS>
+							<suppressionFiles>
+								<suppressionFile>${project.basedir}/config/dependency-check-suppressions.xml</suppressionFile>
+							</suppressionFiles>
 							<formats>
 								<format>HTML</format>
 								<format>JSON</format>
