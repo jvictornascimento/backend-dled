@@ -1,11 +1,12 @@
 package br.com.dled.dledbackend.infrastructure.security.web;
 
+import br.com.dled.dledbackend.infrastructure.security.JwtService;
 import br.com.dled.dledbackend.support.AbstractWebIntegrationTest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -17,8 +18,11 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 class AuthControllerIT extends AbstractWebIntegrationTest {
 
+    @Autowired
+    private JwtService jwtService;
+
     @Test
-    void shouldLoginWithDefaultUserAndReturnCookieAndToken() throws Exception {
+    void shouldLoginWithDefaultUserAndReturnCookieOnly() throws Exception {
         mockMvc.perform(post("/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -30,7 +34,8 @@ class AuthControllerIT extends AbstractWebIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("AUTH_TOKEN"))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("SameSite=Lax")))
-                .andExpect(jsonPath("$.token", notNullValue()))
+                .andExpect(jsonPath("$.token").doesNotExist())
+                .andExpect(jsonPath("$.tokenType").doesNotExist())
                 .andExpect(jsonPath("$.user.username").value("user"));
     }
 
@@ -103,19 +108,7 @@ class AuthControllerIT extends AbstractWebIntegrationTest {
 
     @Test
     void shouldAllowAuthenticatedAccessUsingBearerToken() throws Exception {
-        String token = mockMvc.perform(post("/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "username": "user",
-                                  "password": "123456"
-                                }
-                                """))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        String jwt = token.replaceAll(".*\"token\":\"([^\"]+)\".*", "$1");
+        String jwt = jwtService.generateToken(userRepository.findByUsernameIgnoreCase("user").orElseThrow());
 
         mockMvc.perform(get("/v1/companies")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt))
