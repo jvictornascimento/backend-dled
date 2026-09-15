@@ -104,9 +104,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: target/dependency-check-data
-          key: dependency-check-data-${{ runner.os }}-${{ hashFiles('pom.xml') }}
+          key: dependency-check-data-v13-${{ runner.os }}-${{ hashFiles('pom.xml') }}
           restore-keys: |
-            dependency-check-data-${{ runner.os }}-
+            dependency-check-data-v13-${{ runner.os }}-
 
       - name: Run OWASP Dependency Check
         env:
@@ -115,6 +115,8 @@ jobs:
           MAVEN_ARGS=(--batch-mode -Psecurity-scan -DskipTests verify)
           if [ -n "${DLED_NVD_API_KEY:-}" ]; then
             MAVEN_ARGS+=("-DnvdApiKey=${DLED_NVD_API_KEY}")
+          else
+            unset NVD_API_KEY
           fi
           ./mvnw "${MAVEN_ARGS[@]}"
 
