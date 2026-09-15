@@ -3,7 +3,11 @@ api:
 security:
   api-key:
     header-name: ${API_KEY_HEADER_NAME:X-API-Key}
-    value: ${API_KEY_VALUE:test-api-key}
+    keys:
+      - id: ${API_KEY_PRIMARY_ID:local}
+        hash: ${API_KEY_PRIMARY_HASH:TIBjYrYT90lqvyhBRu/THakOSxYWn+ABhByhcpD0J8Q=}
+      - id: ${API_KEY_SECONDARY_ID:}
+        hash: ${API_KEY_SECONDARY_HASH:}
   jwt:
     secret: ${JWT_SECRET:0123456789012345678901234567890123456789012345678901234567890123}
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}

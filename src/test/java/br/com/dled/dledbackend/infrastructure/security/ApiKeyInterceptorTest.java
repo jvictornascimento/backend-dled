@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +21,7 @@ class ApiKeyInterceptorTest {
     void setUp() {
         apiKeyProperties = new ApiKeyProperties();
         apiKeyProperties.setHeaderName("X-API-Key");
-        apiKeyProperties.setValue("test-api-key");
+        apiKeyProperties.setKeys(List.of(apiKey("primary", "TIBjYrYT90lqvyhBRu/THakOSxYWn+ABhByhcpD0J8Q=")));
         interceptor = new ApiKeyInterceptor(apiKeyProperties);
     }
 
@@ -27,6 +29,21 @@ class ApiKeyInterceptorTest {
     void shouldAllowRequestWhenApiKeyIsValid() {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/v1/products");
         request.addHeader("X-API-Key", "test-api-key");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        boolean result = assertDoesNotThrow(() -> interceptor.preHandle(request, response, new Object()));
+
+        assertTrue(result);
+    }
+
+    @Test
+    void shouldAllowRequestWhenRotatedApiKeyIsConfigured() {
+        apiKeyProperties.setKeys(List.of(
+                apiKey("current", "TIBjYrYT90lqvyhBRu/THakOSxYWn+ABhByhcpD0J8Q="),
+                apiKey("next", "iy7ml09tRjxJP2vM+QHXly79eL/A6jDuCb/Su03ZT7E=")
+        ));
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/v1/products");
+        request.addHeader("X-API-Key", "rotated-api-key");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         boolean result = assertDoesNotThrow(() -> interceptor.preHandle(request, response, new Object()));
@@ -59,5 +76,12 @@ class ApiKeyInterceptorTest {
         boolean result = assertDoesNotThrow(() -> interceptor.preHandle(request, response, new Object()));
 
         assertTrue(result);
+    }
+
+    private ApiKeyProperties.Key apiKey(String id, String hash) {
+        ApiKeyProperties.Key key = new ApiKeyProperties.Key();
+        key.setId(id);
+        key.setHash(hash);
+        return key;
     }
 }

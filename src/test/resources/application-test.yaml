@@ -3,7 +3,11 @@ api:
 security:
   api-key:
     header-name: X-API-Key
-    value: test-api-key
+    keys:
+      - id: test-primary
+        hash: TIBjYrYT90lqvyhBRu/THakOSxYWn+ABhByhcpD0J8Q=
+      - id: test-secondary
+        hash: iy7ml09tRjxJP2vM+QHXly79eL/A6jDuCb/Su03ZT7E=
   jwt:
     secret: 0123456789012345678901234567890123456789012345678901234567890123
     expiration-minutes: 120

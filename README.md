@@ -10,7 +10,8 @@ Required variables:
 DBNAME=dled
 DBUSERNAME=dled_app
 DBPASSWORD=change-this-password
-API_KEY_VALUE=change-this-api-key
+API_KEY_PRIMARY_ID=primary
+API_KEY_PRIMARY_HASH=base64-sha256-hash
 JWT_SECRET=change-this-to-a-long-random-secret-with-at-least-64-characters
 CORS_ORIGIN=https://your-frontend-domain.com
 CLOUDINARY_CLOUD_NAME=your-cloud
@@ -27,6 +28,8 @@ REDIS_PORT=6379
 LOGIN_RATE_LIMIT_MAX_FAILED_ATTEMPTS=5
 LOGIN_RATE_LIMIT_BLOCK_MINUTES=15
 LOGIN_RATE_LIMIT_FAILURE_WINDOW_MINUTES=15
+API_KEY_SECONDARY_ID=next
+API_KEY_SECONDARY_HASH=base64-sha256-hash-for-rotation
 CLOUDINARY_FOLDER=dled/products
 MAX_UPLOAD_FILE_SIZE=5MB
 MAX_UPLOAD_REQUEST_SIZE=6MB
@@ -35,6 +38,18 @@ MAX_UPLOAD_REQUEST_SIZE=6MB
 Production disables Swagger by default, exposes only `/actuator/health`, forces secure JWT cookies and uses database credentials from the environment. Do not deploy with test secrets or default database passwords.
 
 Production uses Redis to share login rate limit state across application instances. Docker Compose starts Redis automatically and configures the application with `LOGIN_RATE_LIMIT_STORE=redis`.
+
+## Public API key rotation
+
+Public read endpoints validate API keys by SHA-256 hash. Do not store the plain API key in repository files or Docker Compose variables.
+
+Create a hash for a new key:
+
+```bash
+printf '%s' 'your-new-api-key' | openssl dgst -sha256 -binary | openssl base64
+```
+
+To rotate without downtime, set `API_KEY_SECONDARY_ID` and `API_KEY_SECONDARY_HASH` with the new key hash, deploy, update clients to the new plain key, then promote it to `API_KEY_PRIMARY_HASH` and clear the secondary variables on a later deploy.
 
 ## Initial admin
 
