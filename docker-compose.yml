@@ -84,6 +84,13 @@ services:
     networks:
       - dled-public
       - dled-db
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,noexec,nosuid,nodev
+    mem_limit: 768m
+    cpus: 1.0
+    pids_limit: 256
     security_opt:
       - no-new-privileges:true
     cap_drop:
