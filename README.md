@@ -39,6 +39,8 @@ Production disables Swagger by default, exposes only `/actuator/health`, forces 
 
 Production uses Redis to share login rate limit state across application instances. Docker Compose starts Redis automatically and configures the application with `LOGIN_RATE_LIMIT_STORE=redis`.
 
+Production also enables forwarded header support for reverse proxies and sends HSTS, CSP, Referrer-Policy and Permissions-Policy headers from the application. Review the deployment decisions in [`docs/security-headers.md`](docs/security-headers.md).
+
 ## Dependency vulnerability scanning
 
 CI runs OWASP Dependency-Check and fails builds for dependencies with CVSS `>= 7`. Configure the GitHub Actions secret `NVD_API_KEY` to keep NVD updates fast and reliable.
