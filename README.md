@@ -39,6 +39,14 @@ Production disables Swagger by default, exposes only `/actuator/health`, forces 
 
 Production uses Redis to share login rate limit state across application instances. Docker Compose starts Redis automatically and configures the application with `LOGIN_RATE_LIMIT_STORE=redis`.
 
+## Dependency vulnerability scanning
+
+CI runs OWASP Dependency-Check and fails builds for dependencies with CVSS `>= 7`. Configure the GitHub Actions secret `NVD_API_KEY` to keep NVD updates fast and reliable.
+
+Dependency-Check reports are uploaded as the `dependency-check-report` artifact even when the scan fails. Review the HTML report before changing dependencies or suppressing a finding.
+
+False positives must be documented in `config/dependency-check-suppressions.xml` with the CVE, affected dependency, reason and an expiration date. Suppressions should be narrow and removed when the dependency is upgraded or the finding is no longer reported.
+
 ## Public API key rotation
 
 Public read endpoints validate API keys by SHA-256 hash. Do not store the plain API key in repository files or Docker Compose variables.
