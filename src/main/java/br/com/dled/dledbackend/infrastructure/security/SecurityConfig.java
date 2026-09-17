@@ -12,6 +12,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,6 +23,40 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 @RequiredArgsConstructor
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
+    static final String CONTENT_SECURITY_POLICY = """
+            default-src 'self'; \
+            base-uri 'self'; \
+            object-src 'none'; \
+            frame-ancestors 'none'; \
+            form-action 'self'; \
+            img-src 'self' data: https:; \
+            script-src 'self' 'unsafe-inline'; \
+            style-src 'self' 'unsafe-inline'; \
+            connect-src 'self'; \
+            font-src 'self' data:; \
+            upgrade-insecure-requests\
+            """;
+
+    static final String PERMISSIONS_POLICY = """
+            accelerometer=(), \
+            autoplay=(), \
+            camera=(), \
+            display-capture=(), \
+            encrypted-media=(), \
+            fullscreen=(self), \
+            geolocation=(), \
+            gyroscope=(), \
+            magnetometer=(), \
+            microphone=(), \
+            midi=(), \
+            payment=(), \
+            picture-in-picture=(), \
+            publickey-credentials-get=(), \
+            sync-xhr=(), \
+            usb=(), \
+            xr-spatial-tracking=()\
+            """;
+
     @Value("${api.prefix}")
     private String apiPrefix;
 
@@ -41,6 +76,14 @@ public class SecurityConfig {
                 .exceptionHandling(configurer -> configurer
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31_536_000))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY))
+                        .referrerPolicy(referrer -> referrer
+                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .permissionsPolicyHeader(policy -> policy.policy(PERMISSIONS_POLICY)))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize

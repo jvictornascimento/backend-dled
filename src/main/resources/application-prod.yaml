@@ -36,6 +36,8 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+server:
+  forward-headers-strategy: framework
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
