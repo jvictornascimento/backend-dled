@@ -42,7 +42,10 @@ public class WoodProduct {
     private String imgUrl;
     private String imgPublicId;
     private String caixa;
+    private String woodType;
+    private String finish;
     private Double price;
+    private Double thicknessMm;
     private Double widthMm;
     private Double heightMm;
     private Double lengthMm;

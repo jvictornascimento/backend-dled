@@ -17,8 +17,13 @@ public record WoodProductFullDto(
         String description,
         @Schema(description = "Packaging code used by employees", example = "CX-PADRAO-02")
         String caixa,
+        @Schema(description = "Wood type", example = "MDF")
+        String woodType,
+        @Schema(description = "Wood finish", example = "Natural")
+        String finish,
         @Schema(description = "Product price", example = "49.90")
         Double price,
+        Double thicknessMm,
         Double widthMm,
         Double heightMm,
         Double lengthMm,
