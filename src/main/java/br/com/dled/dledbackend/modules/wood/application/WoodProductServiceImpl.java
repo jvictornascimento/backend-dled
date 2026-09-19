@@ -144,7 +144,10 @@ public class WoodProductServiceImpl implements IWoodProductService {
         product.setDescription(input.description());
         product.setImgUrl(input.imgUrl());
         product.setCaixa(input.caixa());
+        product.setWoodType(input.woodType());
+        product.setFinish(input.finish());
         product.setPrice(input.price());
+        product.setThicknessMm(input.thicknessMm());
         product.setWidthMm(input.widthMm());
         product.setHeightMm(input.heightMm());
         product.setLengthMm(input.lengthMm());
@@ -191,7 +194,10 @@ public class WoodProductServiceImpl implements IWoodProductService {
                 product.getName(),
                 product.getDescription(),
                 product.getCaixa(),
+                product.getWoodType(),
+                product.getFinish(),
                 product.getPrice(),
+                product.getThicknessMm(),
                 product.getWidthMm(),
                 product.getHeightMm(),
                 product.getLengthMm(),
